@@ -1,0 +1,11 @@
+{
+  "repo": "https://github.com/jev-chat/jev-chat-jarvis.git",
+  "branch": "main",
+  "reviewed_through": "01f65908536d5b1ac76e3ce6cec4bbb5fe667791",
+  "reviewed_release": "v1.4",
+  "reviewed_date": "2026-09-24",
+  "reviewed_pr_through": 54,
+  "reviewed_issue_through": 54,
+  "track": "release",
+  "decision_log": "docs/fork/DECISIONS.md"
+}

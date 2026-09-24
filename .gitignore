@@ -39,3 +39,8 @@ secrets.*
 *.jks
 *.keystore
 keystore.properties
+
+# Fork maintenance (SanHsien)
+.venv/
+.pytest_cache/
+upstream-review-report.md
