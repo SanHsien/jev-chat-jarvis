@@ -25,7 +25,7 @@
 
 ## 硬性邊界
 
-- **對外只打主人的 repo。** PR、push、release 一律指向 `SanHsien/jev-chat-jarvis`。
+- **對外只打維護者的 repo。** PR、push、release 一律指向 `SanHsien/jev-chat-jarvis`。
   對上游開 PR 或 push 預設絕對禁止，除非維護者在當次對話明確同意。
 - 每個工作環境先確認 `gh repo set-default SanHsien/jev-chat-jarvis`。
 - 日常開發推送到 `origin/main` 前，必須通過 Windows 閘門：

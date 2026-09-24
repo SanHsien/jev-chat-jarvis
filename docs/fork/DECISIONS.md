@@ -8,7 +8,7 @@
 - **基準版本**：fork 點為上游 `main` `a3026e2`；審核水位為 `v1.4`（Commit: `01f65908536d5b1ac76e3ce6cec4bbb5fe667791`）。
   `v1.4` 之後的 7 個 commit 皆為 README / CHANGELOG / 網站文件調整，已隨 fork 一併納入。
 - **治理決策**：
-  1. 對外只打主人的 repo（`SanHsien/jev-chat-jarvis`），嚴禁自動向上游開 PR 或 push。
+  1. 對外只打維護者的 repo（`SanHsien/jev-chat-jarvis`），嚴禁自動向上游開 PR 或 push。
   2. 上游 `CLAUDE.md` 原樣保留以降低同步衝突；fork 規則放 `AGENTS.md`，由 `.claude/CLAUDE.md` 匯入。
   3. 建立 `tools/dev_check.ps1`：`-Quick` 為 `tools/jev` Python 語法檢查 + 上游查驗；完整版加跑 `gradlew :app:assembleDebug`。
      機器相關路徑（JDK / SDK / Gradle home）由 gitignore 的 `env.ps1` 提供。
