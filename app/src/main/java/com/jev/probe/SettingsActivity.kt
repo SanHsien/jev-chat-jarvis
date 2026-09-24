@@ -205,14 +205,16 @@ class SettingsActivity : AppCompatActivity() {
             Prefs.DEFAULT_REPLY_BASE -> 0
             Prefs.DEEPSEEK_BASE -> 1
             Prefs.DASHSCOPE_BASE -> 2
-            else -> 3
+            Prefs.VERCEL_OPENAI_BASE -> 3
+            else -> 4
         }
         replyCard.addView(pills(
-            listOf("OpenRouter", "DeepSeek 官方", "通义兼容", "自定义"), replyIdx) { idx ->
+            listOf("OpenRouter", "DeepSeek 官方", "通义兼容", "Vercel", "自定义"), replyIdx) { idx ->
             when (idx) {
                 0 -> { replyBaseEdit.setText(Prefs.DEFAULT_REPLY_BASE); replyModelEdit.setText(Prefs.DEFAULT_REPLY_MODEL) }
                 1 -> { replyBaseEdit.setText(Prefs.DEEPSEEK_BASE); replyModelEdit.setText(Prefs.DEEPSEEK_MODEL) }
                 2 -> { replyBaseEdit.setText(Prefs.DASHSCOPE_BASE); replyModelEdit.setText(Prefs.DASHSCOPE_MODEL) }
+                3 -> { replyBaseEdit.setText(Prefs.VERCEL_OPENAI_BASE); replyModelEdit.setText(Prefs.VERCEL_REPLY_MODEL) }
             }
         })
         replyCard.addView(label("Base URL"))
@@ -259,13 +261,15 @@ class SettingsActivity : AppCompatActivity() {
         val visionIdx = when (prefs.visionBaseUrl.trim().trimEnd('/')) {
             Prefs.DEFAULT_VISION_BASE -> 0
             Prefs.DASHSCOPE_BASE -> 1
-            else -> 2
+            Prefs.VERCEL_OPENAI_BASE -> 2
+            else -> 3
         }
         visionCard.addView(pills(
-            listOf("OpenRouter", "通义兼容", "自定义"), visionIdx) { idx ->
+            listOf("OpenRouter", "通义兼容", "Vercel", "自定义"), visionIdx) { idx ->
             when (idx) {
                 0 -> { visionBaseEdit.setText(Prefs.DEFAULT_VISION_BASE); visionModelEdit.setText(Prefs.DEFAULT_VISION_MODEL) }
                 1 -> { visionBaseEdit.setText(Prefs.DASHSCOPE_BASE); visionModelEdit.setText(Prefs.DASHSCOPE_VISION_MODEL) }
+                2 -> { visionBaseEdit.setText(Prefs.VERCEL_OPENAI_BASE); visionModelEdit.setText(Prefs.VERCEL_VISION_MODEL) }
             }
         })
         visionCard.addView(label("Base URL"))

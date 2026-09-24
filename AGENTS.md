@@ -9,7 +9,7 @@
 呼叫 Jev 判斷模型（選擇／評分／是非）分析對方意圖與風險，再產生候選回覆，一鍵填入輸入框，發送由人決定。
 
 `origin` 是 `SanHsien/jev-chat-jarvis`，`upstream` 是原作者 repo，預設分支皆為 `main`。
-本 fork 的維護差異記在 [`FORK.md`](FORK.md) 與 [`docs/fork/DECISIONS.md`](docs/fork/DECISIONS.md)。
+本 fork 的維護差異記在 [`FORK.md`](FORK.md) 與 [`docs/DECISIONS.md`](docs/DECISIONS.md)。
 
 主要開發與完整驗收環境是 **Windows 11 + PowerShell 7**。
 
@@ -20,7 +20,7 @@
 
 以下兩條在本 fork 另有規定：
 
-- 上游第 7 條「禁止 `git commit` / `git push`」：本 fork 改為「維護者明確要求時才 commit / push，且只推 `origin`」。
+- 上游第 7 條「禁止 `git commit` / `git push`」：本 fork 改為「完成且 gate 通過即 commit 並推 `origin/main`，不開分支、不開 PR；只推 `origin`」。
 - 上游第 4 條固定路徑 `H:\ai_tool\jev-android`：本 fork 不限定路徑，但仍必須全 ASCII。
 
 ## 硬性邊界
@@ -31,4 +31,24 @@
 - 日常開發推送到 `origin/main` 前，必須通過 Windows 閘門：
   `pwsh -NoProfile -File tools/dev_check.ps1 -Quick`（或完整無參數版本，含 Gradle 建置）。
 - 保持乾淨工作目錄，不隨意刪除上游核心程式、資源或依賴。
+- **改到上游持有的檔案，同一個 commit 在 [`docs/DIVERGENCE.md`](docs/DIVERGENCE.md) 加一列**；
+  `tools/check_divergence.py` 會擋未登記的改動。
 - 任何檔案不得出現 `sk-or-` 開頭字串或其他密鑰；簽章檔（`*.jks`、`keystore.properties`）不進 repo。
+
+## 驗證
+
+完整指令與各步驟見 [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md)。最少要跑：
+
+```powershell
+python -m pip install -r requirements-dev.txt
+pwsh -NoProfile -File tools/dev_check.ps1 -Quick
+```
+
+動到 `app/` 時跑完整版（含 `gradlew :app:assembleDebug`）；本機沒有 Android SDK 時，以 CI 的
+`Android build` job 為準，並在回報中說明未本機建置。
+
+## 本 fork 的產品差異
+
+- **判斷接口預設 Vercel**：全新安裝三路接口皆為 Vercel AI Gateway（`Prefs.seedVercelDefaultIfFresh()`），次選 OpenRouter。
+- **LINE**：`LineAdapter` 骨架在 `capture/ChatAppAdapter.kt`，`VERIFIED = false`；拿到真機 dump 前不得改成 true。
+  流程見 [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md#line-支援)。

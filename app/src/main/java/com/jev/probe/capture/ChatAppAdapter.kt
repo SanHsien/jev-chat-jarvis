@@ -508,3 +508,99 @@ class XAdapter : ChatAppAdapter {
 
     private data class Row(val top: Int, val sender: String, val text: String)
 }
+
+/**
+ * LINE (jp.naver.line.android) — fork (SanHsien) skeleton, NOT yet verified on a
+ * device. Until a real `uiautomator dump` of a LINE chat room confirms the ids
+ * below, [VERIFIED] stays false and [extract] returns null for every window, which
+ * the service treats exactly like an app with no adapter: the idle bubble is parked
+ * and the menu's "截屏识别一次" (full-screen OCR) remains the way in.
+ *
+ * To finish it from a dump (`adb shell uiautomator dump` in an open chat room):
+ * 1. Fill [MESSAGE_ID] / [INPUT_ID] / [TITLE_ID] with the resource-ids that carry
+ *    the message body, the compose box and the room name. Leave one null if the
+ *    dump has no such id; the geometry fallbacks below then apply.
+ * 2. Check the side rule: LINE right-aligns my bubbles and left-aligns the other
+ *    side's (with an avatar column), so a bubble whose right edge sits closer to
+ *    the screen's right edge than its left edge sits to the avatar column is "me".
+ * 3. If the dump carries bubbles but no text (drawn bodies, like Feishu), return an
+ *    empty message list from a chat window instead, so the OCR fallback runs.
+ * 4. Flip [VERIFIED] to true and record the dump's findings in docs/DIVERGENCE.md.
+ *
+ * Like every adapter: read only, never touch the send button, never read pay /
+ * transfer screens (LINE Pay lives in the same package — "in a chat window" must
+ * require the compose box, which those screens do not have).
+ */
+class LineAdapter : ChatAppAdapter {
+    override val pkg = "jp.naver.line.android"
+
+    override fun extract(root: AccessibilityNodeInfo, res: Resources): ChatSnapshot? {
+        if (!VERIFIED) return null
+        val width = res.displayMetrics.widthPixels
+        val height = res.displayMetrics.heightPixels
+        val bubbles = ArrayList<Bubble>()
+        var firstBubbleTop = Int.MAX_VALUE
+        var inputTop = Int.MAX_VALUE
+        var title: String? = null
+        val texts = ArrayList<Bubble>()
+
+        val stack = ArrayDeque<AccessibilityNodeInfo>()
+        stack.addLast(root)
+        var guard = 0
+        while (stack.isNotEmpty() && guard < 5000) {
+            guard++
+            val node = stack.removeLast()
+            val id = node.viewIdResourceName
+            val text = node.text?.toString()
+            val b = Rect(); node.getBoundsInScreen(b)
+            val isInput = if (INPUT_ID != null) id == INPUT_ID else node.isEditable
+            if (isInput && b.top < inputTop) inputTop = b.top
+            if (TITLE_ID != null && id == TITLE_ID && title == null && !text.isNullOrBlank()) title = text
+            if (!text.isNullOrBlank() && !node.isEditable) {
+                if (MESSAGE_ID != null) {
+                    if (id == MESSAGE_ID) bubbles.add(Bubble(b.top, b.left, b.right, text))
+                } else {
+                    texts.add(Bubble(b.top, b.left, b.right, text))
+                }
+            }
+            for (i in node.childCount - 1 downTo 0) node.getChild(i)?.let { stack.addLast(it) }
+        }
+        // No compose box → not a chat room (room list, LINE Pay, timeline…).
+        if (inputTop == Int.MAX_VALUE) return null
+
+        if (MESSAGE_ID == null) {
+            // Geometry fallback: text between the action bar and the compose box,
+            // minus timestamps and read receipts.
+            val top = (height * 0.12).toInt()
+            texts.filterTo(bubbles) {
+                it.top in top until inputTop && !looksLikeTimestamp(it.text) && !isReadReceipt(it.text)
+            }
+        }
+        bubbles.forEach { if (it.top < firstBubbleTop) firstBubbleTop = it.top }
+        if (title == null) title = findTitleInActionBar(root, firstBubbleTop, width, res)
+        if (bubbles.isEmpty()) return ChatSnapshot(title, emptyList())
+
+        val avatarEdge = (width * 0.13).toInt()
+        bubbles.sortBy { it.top }
+        val msgs = bubbles.map { b ->
+            val dl = kotlin.math.abs(b.left - avatarEdge)
+            val dr = kotlin.math.abs(width - b.right)
+            Msg(if (dr < dl) "me" else "other", b.text)
+        }
+        return ChatSnapshot(title, msgs)
+    }
+
+    private fun isReadReceipt(t: String): Boolean =
+        t == "已讀" || t == "既読" || t == "Read" || t.startsWith("已讀 ") || t.startsWith("既読 ")
+
+    private data class Bubble(val top: Int, val left: Int, val right: Int, val text: String)
+
+    companion object {
+        /** Flip to true only after a real chat-room dump confirmed the rules above. */
+        const val VERIFIED = false
+        // TODO(line.xml): fill from `adb shell uiautomator dump` of an open chat room.
+        private val MESSAGE_ID: String? = null
+        private val INPUT_ID: String? = null
+        private val TITLE_ID: String? = null
+    }
+}

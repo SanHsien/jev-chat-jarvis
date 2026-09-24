@@ -48,7 +48,11 @@ open class ChatCaptureService : AccessibilityService() {
      *  disabled and handled by a short-circuit notice instead of an adapter (see
      *  [maybeCapture] / [onAccessibilityEvent]). [WeChatAdapter] is kept in the
      *  codebase for a possible future restore, just not used here. */
-    private val adapters = listOf(QQAdapter(), XAdapter(), FeishuAdapter()).associateBy { it.pkg }
+    // Fork (SanHsien): LINE joins only once its adapter is verified on a device;
+    // until then LINE stays an unadapted app (idle bubble + manual OCR).
+    private val adapters = listOfNotNull(
+        QQAdapter(), XAdapter(), FeishuAdapter(), LineAdapter().takeIf { LineAdapter.VERIFIED }
+    ).associateBy { it.pkg }
 
     /** Submit to the worker, ignoring rejection after the service is torn down
      *  (a stale overlay callback must never crash the process). */

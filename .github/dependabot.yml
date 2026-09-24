@@ -1,0 +1,48 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Asia/Taipei"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "github-actions"]
+    groups:
+      github-actions:
+        patterns: ["*"]
+
+  # Fork maintenance tooling (tools/*.py, tests/). One grouped pull request per run.
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Asia/Taipei"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "python"]
+    groups:
+      python-dev-tools:
+        patterns: ["*"]
+
+  # The Android app (app/build.gradle.kts, build.gradle.kts, gradle wrapper). Upstream
+  # owns these files, but this fork tracks releases directly (see docs/DIVERGENCE.md for
+  # how a bump is registered). Grouped so AGP / Kotlin / AndroidX move together: they pin
+  # each other, and a one-library-at-a-time pull request routinely fails the build.
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Asia/Taipei"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "gradle"]
+    groups:
+      android-build:
+        patterns: ["com.android.*", "org.jetbrains.kotlin*"]
+      android-libraries:
+        patterns: ["*"]
+        exclude-patterns: ["com.android.*", "org.jetbrains.kotlin*"]

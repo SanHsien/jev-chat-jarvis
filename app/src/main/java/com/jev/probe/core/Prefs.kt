@@ -20,7 +20,7 @@ class Prefs(context: Context, prefsName: String = PREFS_MAIN) {
      * throwaway instances behind the settings test buttons and the KB self-check
      * have nothing to carry over, and used to print one migration line per tap.
      */
-    init { if (prefsName == PREFS_MAIN) { migrateIfNeeded(); unseedBochaDefaultIfUnconfigured() } }
+    init { if (prefsName == PREFS_MAIN) { migrateIfNeeded(); unseedBochaDefaultIfUnconfigured(); seedVercelDefaultIfFresh() } }
 
     /**
      * v1.2 -> v1.3: the single `openrouter_key` becomes the judge route's key.
@@ -64,6 +64,33 @@ class Prefs(context: Context, prefsName: String = PREFS_MAIN) {
         if (prov == PROVIDER_BOCHA && key.isBlank()) {
             e.remove(K_JUDGE_PROVIDER).remove(K_JUDGE_BASE).remove(K_JUDGE_MODEL)
             Log.i(TAG, "prefs: reverted auto-seeded bocha default to openrouter")
+        }
+        e.apply()
+    }
+
+    /**
+     * Fork (SanHsien): fresh installs default all three routes to Vercel AI Gateway,
+     * so one gateway key covers judge, reply and vision. Runs exactly once and ONLY
+     * on a truly empty config: no provider picked, no judge / legacy key, and the
+     * reply / vision addresses never written. Anyone with an existing OpenRouter key
+     * (upgraded or migrated) is left untouched. See docs/DIVERGENCE.md.
+     */
+    private fun seedVercelDefaultIfFresh() {
+        if (sp.getBoolean(K_SEEDED_VERCEL, false)) return
+        val e = sp.edit().putBoolean(K_SEEDED_VERCEL, true)
+        val fresh = !sp.contains(K_JUDGE_PROVIDER) &&
+            (sp.getString(K_JUDGE_KEY, "") ?: "").isBlank() &&
+            (sp.getString(K_LEGACY_KEY, "") ?: "").isBlank() &&
+            !sp.contains(K_REPLY_BASE) && !sp.contains(K_VISION_BASE)
+        if (fresh) {
+            e.putString(K_JUDGE_PROVIDER, PROVIDER_VERCEL)
+                .putString(K_JUDGE_BASE, DEFAULT_JUDGE_BASE_VERCEL)
+                .putString(K_JUDGE_MODEL, DEFAULT_JUDGE_MODEL_VERCEL)
+                .putString(K_REPLY_BASE, VERCEL_OPENAI_BASE)
+                .putString(K_REPLY_MODEL, VERCEL_REPLY_MODEL)
+                .putString(K_VISION_BASE, VERCEL_OPENAI_BASE)
+                .putString(K_VISION_MODEL, VERCEL_VISION_MODEL)
+            Log.i(TAG, "prefs: fresh install seeded to vercel ai gateway")
         }
         e.apply()
     }
@@ -261,6 +288,7 @@ class Prefs(context: Context, prefsName: String = PREFS_MAIN) {
 
         private const val K_LEGACY_KEY = "openrouter_key"
         private const val K_MIGRATED_V13 = "prefs_migrated_v13"
+        private const val K_SEEDED_VERCEL = "fork_seeded_vercel_v1"
         private const val K_UNSEEDED_BOCHA = "unseeded_bocha_v141"
         private const val K_JUDGE_PROVIDER = "judge_provider"
         private const val K_JUDGE_BASE = "judge_base_url"
@@ -322,6 +350,12 @@ class Prefs(context: Context, prefsName: String = PREFS_MAIN) {
         const val DEEPSEEK_MODEL = "deepseek-chat"
         const val DASHSCOPE_BASE = "https://dashscope.aliyuncs.com/compatible-mode/v1"
         const val DASHSCOPE_MODEL = "qwen-plus"
+
+        // Fork (SanHsien): Vercel AI Gateway's OpenAI-compatible API, for the reply
+        // and vision routes, so the judge route's gateway key works for all three.
+        const val VERCEL_OPENAI_BASE = "https://ai-gateway.vercel.sh/v1"
+        const val VERCEL_REPLY_MODEL = "deepseek/deepseek-v3.1"
+        const val VERCEL_VISION_MODEL = "google/gemini-2.5-flash"
 
         // Vision route preset (OpenRouter region-available; user may change).
         const val DEFAULT_VISION_BASE = "https://openrouter.ai/api/v1"

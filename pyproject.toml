@@ -1,0 +1,14 @@
+# Tool configuration only. This repository is an Android app, not a Python package:
+# no [project] / [build-system] on purpose.
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+# tools/jev/ is upstream's calibration scaffold; it tracks upstream style, not ours.
+extend-exclude = ["tools/jev"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

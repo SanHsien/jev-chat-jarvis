@@ -6,7 +6,7 @@
 
 **裝在手機上的「對話副駕」：你在任何聊天 App 裡聊天，它在旁邊讀懂對方、告訴你該怎麼回，一鍵填進輸入框，發不發由你。**
 
-中文版 | [简体中文原文（上游）](README.zh-CN.md)
+中文版 | [English](README.en.md) | [简体中文原文（上游）](README.zh-CN.md)
 
 </div>
 
@@ -30,7 +30,8 @@
 | X / Twitter 私訊 | ✅ 全鏈路 | 解析 Compose 節點 content-desc |
 | 飛書 / Lark | ✅ OCR 兜底 | 氣泡矩形 + ML Kit 離線 OCR |
 | 微信 Android | ⏸ 已停止支援 | 微信隱藏節點文字且部分啟用防截圖 |
-| LINE 與其他 App | ✅ 手動 | 懸浮窗選單「截屏識別一次」整屏 OCR（不分我／對方） |
+| LINE | ✅ 手動；自動開發中 | 手動整屏 OCR 可用；`LineAdapter` 骨架待真機驗證（見 [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md#line-支援)） |
+| 其他 App | ✅ 手動 | 懸浮窗選單「截屏識別一次」整屏 OCR（不分我／對方） |
 
 ## 快速開始
 
@@ -38,7 +39,7 @@
    ```bash
    adb install -r apk/jev-assistant-v1.4-release.apk
    ```
-2. 填金鑰：App → 設定 →「接口」，最少填判斷接口（如 OpenRouter / Vercel AI Gateway 金鑰），回覆與視覺留空會自動繼承。
+2. 填金鑰：App → 設定 →「接口」。本 fork 新安裝預設三路皆為 Vercel AI Gateway，只要在判斷接口填一把 Vercel 金鑰，回覆與視覺留空即繼承；次選 OpenRouter。詳見 [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md)。
 3. 開權限：無障礙、懸浮窗、自啟動 + 省電無限制（小米 / HyperOS 必開）。
 
 ## 建置

@@ -28,8 +28,8 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 REPO_ROOT = SCRIPT_DIR.parent
 BASELINE_PATH = SCRIPT_DIR / "upstream_baseline.json"
 UPSTREAM_REF_PREFIX = "refs/upstream-check"
-DEFAULT_DECISION_LOG = "docs/fork/DECISIONS.md"
-DEFAULT_DECISION_LOG = "docs/fork/DECISIONS.md"
+DEFAULT_DECISION_LOG = "docs/DECISIONS.md"
+DEFAULT_DECISION_LOG = "docs/DECISIONS.md"
 TRACK_MODES = ("release", "commit")
 # Upstream tags two-part versions (v1.3, v1.4); a missing patch reads as 0.
 _SEMVER_TAG_RE = re.compile(r"^v?(\d+)\.(\d+)(?:\.(\d+))?$")
@@ -187,9 +187,7 @@ def collect_new_commits(baseline: dict, repo_dir: Path, ref: str) -> list[dict]:
         sha, date, subject = line.split("\x1f", 2)
         files = [
             item
-            for item in run_git(
-                ["show", "--name-only", "--format=", sha], repo_dir
-            ).splitlines()
+            for item in run_git(["show", "--name-only", "--format=", sha], repo_dir).splitlines()
             if item.strip()
         ]
         commits.append(
@@ -204,12 +202,9 @@ def collect_new_commits(baseline: dict, repo_dir: Path, ref: str) -> list[dict]:
     return commits
 
 
-
 def upstream_slug(repo_url: str) -> str | None:
     """`https://github.com/owner/name.git` -> `owner/name`, or None if not GitHub."""
-    match = re.search(
-        r"github\.com[:/](?P<owner>[^/]+)/(?P<name>[^/]+?)(?:\.git)?$", repo_url
-    )
+    match = re.search(r"github\.com[:/](?P<owner>[^/]+)/(?P<name>[^/]+?)(?:\.git)?$", repo_url)
     return f"{match['owner']}/{match['name']}" if match else None
 
 
@@ -228,8 +223,17 @@ def collect_new_tickets(baseline: dict, kind: str) -> list[dict] | None:
     try:
         result = subprocess.run(
             [
-                "gh", kind, "list", "--repo", slug, "--state", "all",
-                "--limit", "50", "--json", "number,title",
+                "gh",
+                kind,
+                "list",
+                "--repo",
+                slug,
+                "--state",
+                "all",
+                "--limit",
+                "50",
+                "--json",
+                "number,title",
             ],
             capture_output=True,
             text=True,
@@ -324,6 +328,7 @@ def append_ticket_sections(
         decision_log,
     )
     return "\n".join(lines)
+
 
 def render_markdown(
     baseline: dict,
@@ -447,9 +452,7 @@ def main() -> int:
         # Informational only: a fork-status failure must not turn the review
         # check red, because it says nothing about whether upstream moved.
         try:
-            status = fork_status(
-                baseline, args.repo_dir, fetch_upstream(baseline, args.repo_dir)
-            )
+            status = fork_status(baseline, args.repo_dir, fetch_upstream(baseline, args.repo_dir))
         except UpstreamCheckError as exc:
             status_error = str(exc)
 
@@ -463,18 +466,12 @@ def main() -> int:
     if error:
         return 2
     unavailable = [
-        name
-        for name, value in (("pull requests", prs), ("issues", issues))
-        if value is None
+        name for name, value in (("pull requests", prs), ("issues", issues)) if value is None
     ]
     if unavailable:
         # Fail closed. A report that could not enumerate tickets must not
         # be allowed to read as a clean bill of health.
-        print(
-            "ERROR: gh could not enumerate upstream "
-            + " and ".join(unavailable)
-            + "."
-        )
+        print("ERROR: gh could not enumerate upstream " + " and ".join(unavailable) + ".")
         return 2
     if args.strict and (commits or prs or issues):
         return 1
@@ -483,6 +480,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
-
-
