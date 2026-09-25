@@ -1,0 +1,81 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
+<!--
+  Condensed from a real `uiautomator dump` of a LINE 1:1 chat room (2026-09-25,
+  1440x3120, Traditional Chinese UI). Resource-ids, classes, nesting and bounds are
+  kept as dumped; the contact name and message text are replaced with fake values,
+  and nodes the adapter never reads (header buttons, backgrounds) are dropped.
+  Rows top to bottom: other text, other photo, me text (read), other text,
+  me text (read), other sticker.
+-->
+<hierarchy rotation="0">
+<node text="" resource-id="" class="android.widget.FrameLayout" package="jp.naver.line.android" content-desc="" bounds="[0,0][1440,3120]">
+ <node text="" resource-id="jp.naver.line.android:id/chat_ui_main_header" class="android.widget.LinearLayout" package="jp.naver.line.android" content-desc="通話" bounds="[0,0][1440,352]">
+  <node text="" resource-id="jp.naver.line.android:id/header_up_button_bg" class="android.widget.LinearLayout" package="jp.naver.line.android" content-desc="返回" bounds="[0,145][176,352]" />
+  <node text="" resource-id="jp.naver.line.android:id/main_view_group" class="android.widget.LinearLayout" package="jp.naver.line.android" content-desc="" bounds="[180,145][799,352]">
+   <node text="測試聯絡人(洗車)" resource-id="jp.naver.line.android:id/header_title" class="android.widget.TextView" package="jp.naver.line.android" content-desc="" bounds="[180,204][799,294]" />
+  </node>
+ </node>
+ <node text="" resource-id="jp.naver.line.android:id/chathistory_message_list" class="androidx.recyclerview.widget.RecyclerView" package="jp.naver.line.android" content-desc="" bounds="[0,352][1440,2823]">
+  <node text="" resource-id="jp.naver.line.android:id/chat_ui_row_contentview_container" class="android.widget.FrameLayout" package="jp.naver.line.android" content-desc="" bounds="[0,352][1440,764]">
+   <node text="" resource-id="jp.naver.line.android:id/chat_ui_row_thumbnail" class="android.widget.ImageView" package="jp.naver.line.android" content-desc="測試聯絡人(洗車)的個人圖片" bounds="[31,352][146,418]" />
+   <node text="" resource-id="jp.naver.line.android:id/chat_ui_row_message_layout" class="android.widget.FrameLayout" package="jp.naver.line.android" content-desc="" bounds="[165,352][1012,764]">
+    <node text="" resource-id="jp.naver.line.android:id/chat_ui_row_text_message" class="android.widget.LinearLayout" package="jp.naver.line.android" content-desc="您好&#10;連假都客滿了&#10;要排在連假後" bounds="[165,352][1012,764]">
+     <node text="您好&#10;連假都客滿了&#10;要排在連假後" resource-id="jp.naver.line.android:id/chat_ui_message_text" class="android.widget.TextView" package="jp.naver.line.android" content-desc="" bounds="[165,352][1012,733]" />
+    </node>
+   </node>
+   <node text="" resource-id="jp.naver.line.android:id/chat_ui_row_layout_metadata" class="android.widget.LinearLayout" package="jp.naver.line.android" content-desc="" bounds="[1031,696][1234,749]">
+    <node text="下午12:49" resource-id="jp.naver.line.android:id/chat_ui_row_timestamp" class="android.widget.TextView" package="jp.naver.line.android" content-desc="" bounds="[1031,696][1234,749]" />
+   </node>
+  </node>
+  <node text="" resource-id="jp.naver.line.android:id/chat_ui_row_contentview_container" class="android.widget.FrameLayout" package="jp.naver.line.android" content-desc="" bounds="[0,794][1440,1311]">
+   <node text="" resource-id="jp.naver.line.android:id/chat_ui_row_message_layout" class="android.widget.FrameLayout" package="jp.naver.line.android" content-desc="" bounds="[165,794][1083,1311]">
+    <node text="" resource-id="jp.naver.line.android:id/chat_ui_row_image" class="android.widget.ImageView" package="jp.naver.line.android" content-desc="夾帶照片" bounds="[165,794][1083,1311]" />
+   </node>
+   <node text="" resource-id="jp.naver.line.android:id/chat_ui_row_layout_metadata" class="android.widget.LinearLayout" package="jp.naver.line.android" content-desc="" bounds="[1102,1243][1305,1296]">
+    <node text="下午12:49" resource-id="jp.naver.line.android:id/chat_ui_row_timestamp" class="android.widget.TextView" package="jp.naver.line.android" content-desc="" bounds="[1102,1243][1305,1296]" />
+   </node>
+   <node text="" resource-id="jp.naver.line.android:id/chat_ui_row_message_share_button" class="android.widget.ImageView" package="jp.naver.line.android" content-desc="分享" bounds="[1121,992][1243,1114]" />
+  </node>
+  <node text="" resource-id="jp.naver.line.android:id/chat_ui_row_contentview_container" class="android.widget.FrameLayout" package="jp.naver.line.android" content-desc="" bounds="[0,1341][1440,1701]">
+   <node text="" resource-id="jp.naver.line.android:id/chat_ui_linear_layout_meta_data" class="android.widget.LinearLayout" package="jp.naver.line.android" content-desc="" bounds="[223,1576][426,1690]">
+    <node text="已讀" resource-id="jp.naver.line.android:id/chat_ui_row_read_count" class="android.widget.TextView" package="jp.naver.line.android" content-desc="" bounds="[338,1576][426,1629]" />
+    <node text="下午12:54" resource-id="jp.naver.line.android:id/chat_ui_row_timestamp" class="android.widget.TextView" package="jp.naver.line.android" content-desc="" bounds="[223,1633][426,1686]" />
+   </node>
+   <node text="" resource-id="jp.naver.line.android:id/chat_ui_row_message_layout" class="android.widget.FrameLayout" package="jp.naver.line.android" content-desc="" bounds="[445,1341][1409,1701]">
+    <node text="好，那約下週六下午，週日也可以嗎？" resource-id="jp.naver.line.android:id/chat_ui_message_text" class="android.widget.TextView" package="jp.naver.line.android" content-desc="" bounds="[445,1364][1409,1670]" />
+   </node>
+  </node>
+  <node text="" resource-id="jp.naver.line.android:id/chat_ui_row_contentview_container" class="android.widget.FrameLayout" package="jp.naver.line.android" content-desc="" bounds="[0,1731][1440,2009]">
+   <node text="" resource-id="jp.naver.line.android:id/chat_ui_row_thumbnail" class="android.widget.ImageView" package="jp.naver.line.android" content-desc="測試聯絡人(洗車)的個人圖片" bounds="[31,1731][146,1846]" />
+   <node text="" resource-id="jp.naver.line.android:id/chat_ui_row_message_layout" class="android.widget.FrameLayout" package="jp.naver.line.android" content-desc="" bounds="[165,1731][1095,2009]">
+    <node text="可以的&#10;一天一台好了" resource-id="jp.naver.line.android:id/chat_ui_message_text" class="android.widget.TextView" package="jp.naver.line.android" content-desc="" bounds="[165,1754][1095,1978]" />
+   </node>
+   <node text="" resource-id="jp.naver.line.android:id/chat_ui_row_layout_metadata" class="android.widget.LinearLayout" package="jp.naver.line.android" content-desc="" bounds="[1114,1941][1317,1994]">
+    <node text="下午12:55" resource-id="jp.naver.line.android:id/chat_ui_row_timestamp" class="android.widget.TextView" package="jp.naver.line.android" content-desc="" bounds="[1114,1941][1317,1994]" />
+   </node>
+  </node>
+  <node text="" resource-id="jp.naver.line.android:id/chat_ui_row_contentview_container" class="android.widget.FrameLayout" package="jp.naver.line.android" content-desc="" bounds="[0,2039][1440,2197]">
+   <node text="" resource-id="jp.naver.line.android:id/chat_ui_linear_layout_meta_data" class="android.widget.LinearLayout" package="jp.naver.line.android" content-desc="" bounds="[781,2072][958,2186]">
+    <node text="已讀" resource-id="jp.naver.line.android:id/chat_ui_row_read_count" class="android.widget.TextView" package="jp.naver.line.android" content-desc="" bounds="[870,2072][958,2125]" />
+    <node text="下午1:34" resource-id="jp.naver.line.android:id/chat_ui_row_timestamp" class="android.widget.TextView" package="jp.naver.line.android" content-desc="" bounds="[781,2129][958,2182]" />
+   </node>
+   <node text="" resource-id="jp.naver.line.android:id/chat_ui_row_message_layout" class="android.widget.FrameLayout" package="jp.naver.line.android" content-desc="" bounds="[977,2039][1409,2197]">
+    <node text="好，謝謝" resource-id="jp.naver.line.android:id/chat_ui_message_text" class="android.widget.TextView" package="jp.naver.line.android" content-desc="" bounds="[977,2062][1409,2166]" />
+   </node>
+  </node>
+  <node text="" resource-id="jp.naver.line.android:id/chat_ui_row_contentview_container" class="android.widget.FrameLayout" package="jp.naver.line.android" content-desc="" bounds="[0,2227][1440,2793]">
+   <node text="" resource-id="jp.naver.line.android:id/chat_ui_row_thumbnail" class="android.widget.ImageView" package="jp.naver.line.android" content-desc="測試聯絡人(洗車)的個人圖片" bounds="[31,2227][146,2342]" />
+   <node text="" resource-id="jp.naver.line.android:id/chat_ui_row_message_layout" class="android.widget.FrameLayout" package="jp.naver.line.android" content-desc="" bounds="[165,2227][873,2793]">
+    <node text="" resource-id="jp.naver.line.android:id/chat_ui_row_sticker_view" class="android.widget.ImageView" package="jp.naver.line.android" content-desc="貼圖" bounds="[165,2227][873,2793]" />
+   </node>
+   <node text="" resource-id="jp.naver.line.android:id/chat_ui_row_layout_metadata" class="android.widget.LinearLayout" package="jp.naver.line.android" content-desc="" bounds="[892,2725][1069,2778]">
+    <node text="下午1:49" resource-id="jp.naver.line.android:id/chat_ui_row_timestamp" class="android.widget.TextView" package="jp.naver.line.android" content-desc="" bounds="[892,2725][1069,2778]" />
+   </node>
+  </node>
+ </node>
+ <node text="" resource-id="jp.naver.line.android:id/chat_ui_input_bar_container" class="android.widget.LinearLayout" package="jp.naver.line.android" content-desc="" bounds="[0,2823][1440,3028]">
+  <node text="" resource-id="jp.naver.line.android:id/chat_ui_message_edit" class="android.widget.EditText" package="jp.naver.line.android" content-desc="輸入您的訊息" bounds="[529,2846][1076,3005]" />
+  <node text="" resource-id="jp.naver.line.android:id/chat_ui_send_button_image" class="android.widget.ImageView" package="jp.naver.line.android" content-desc="語音訊息" bounds="[1271,2861][1409,2999]" />
+ </node>
+</node>
+</hierarchy>

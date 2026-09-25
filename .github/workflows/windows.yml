@@ -1,0 +1,59 @@
+name: windows
+
+# Windows 版（wingman/）：跑各模組自測，並用 PyInstaller 打包成 artifact。正式發佈由 release.yml 的
+# windows job 附到 Release。打包結果內含 GPLv3 的 PySide6-Fluent-Widgets（見 docs/licenses/jev-chat-windows/NOTICE）。
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "wingman/**"
+      - "tools/windows/**"
+      - "requirements-windows.txt"
+      - ".github/workflows/windows.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: python -m pip install -r requirements-windows.txt pyinstaller
+      - name: Self-tests
+        shell: pwsh
+        env:
+          PYTHONUTF8: "1"
+        run: |
+          foreach ($m in "wingman.core.providers", "wingman.core.jev_client", "wingman.core.llm", "wingman.core.draft", "wingman.core.engine", "wingman.app.update") {
+            python -m $m
+            if ($LASTEXITCODE -ne 0) { throw "$m self-test failed" }
+          }
+      - name: Write version
+        shell: pwsh
+        run: Set-Content -Path wingman/app/version.py -Value ('VERSION = "' + $env:GITHUB_SHA.Substring(0, 7) + '"') -Encoding utf8
+      - name: Build
+        run: pyinstaller --noconfirm --clean tools/windows/wingman.spec
+      - name: Pack
+        shell: pwsh
+        run: |
+          $exe = 'dist\chat-wingman\chat-wingman.exe'
+          if (-not (Test-Path $exe)) { throw "exe not built: $exe" }
+          Copy-Item -Path LICENSE, NOTICE -Destination 'dist\chat-wingman'
+          Copy-Item -Path docs\licenses\jev-chat-windows\LICENSE -Destination 'dist\chat-wingman\LICENSE-jev-chat-windows'
+          Copy-Item -Path docs\licenses\jev-chat-windows\NOTICE -Destination 'dist\chat-wingman\NOTICE-jev-chat-windows'
+          Compress-Archive -Path 'dist\chat-wingman' -DestinationPath 'chat-wingman-windows.zip'
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: chat-wingman-windows
+          path: chat-wingman-windows.zip
+          retention-days: 30

@@ -1,0 +1,48 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Asia/Taipei"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "github-actions"]
+    groups:
+      github-actions:
+        patterns: ["*"]
+
+  # Fork maintenance tooling (tools/*.py, tests/). One grouped pull request per run.
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Asia/Taipei"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "python"]
+    groups:
+      python-dev-tools:
+        patterns: ["*"]
+
+  # The Android app (app/build.gradle.kts, build.gradle.kts, gradle wrapper). Upstream
+  # owns these files, but this fork tracks releases directly (see docs/DIVERGENCE.md for
+  # how a bump is registered). ONE group: AGP, the Gradle wrapper and AndroidX pin each
+  # other, and the 2026-09-24 split (AGP in one PR, wrapper in another) produced two
+  # pull requests that could each only fail. A major AGP bump may still need a manual
+  # build-file migration (AGP 9 dropped the kotlin-android plugin); CI's Android build
+  # job is what decides.
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Asia/Taipei"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "gradle"]
+    groups:
+      android:
+        patterns: ["*"]

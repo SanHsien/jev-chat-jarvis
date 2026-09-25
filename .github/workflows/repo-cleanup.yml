@@ -1,0 +1,60 @@
+name: repo cleanup
+
+# Keeps the repository down to: the default branch, the latest release, and that
+# release's tag. Runs by hand, and after every release (called from release.yml).
+# A branch that is the head of an OPEN pull request (e.g. a Dependabot update) is
+# kept and reported, because deleting it would silently close that pull request.
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: write
+  pull-requests: read
+
+concurrency:
+  group: repo-cleanup
+  cancel-in-progress: false
+
+jobs:
+  prune:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+    steps:
+      - name: Old releases and tags
+        run: |
+          latest=$(gh release list --repo "$REPO" --limit 200 --json tagName,isLatest \
+            --jq '.[] | select(.isLatest) | .tagName')
+          if [ -z "$latest" ]; then echo "No latest release; nothing pruned."; exit 0; fi
+          echo "Keeping release $latest"
+          gh release list --repo "$REPO" --limit 200 --json tagName --jq '.[].tagName' |
+            while read -r tag; do
+              [ "$tag" = "$latest" ] && continue
+              echo "Deleting release $tag"
+              gh release delete "$tag" --repo "$REPO" --yes --cleanup-tag
+            done
+          gh api "repos/$REPO/tags?per_page=100" --paginate --jq '.[].name' |
+            while read -r tag; do
+              [ "$tag" = "$latest" ] && continue
+              echo "Deleting tag $tag"
+              gh api -X DELETE "repos/$REPO/git/refs/tags/$tag"
+            done
+
+      - name: Branches other than the default branch
+        run: |
+          default=$(gh api "repos/$REPO" --jq .default_branch)
+          open_heads=$(gh pr list --repo "$REPO" --state open --json headRefName --jq '.[].headRefName')
+          gh api "repos/$REPO/branches?per_page=100" --paginate --jq '.[].name' |
+            while read -r branch; do
+              [ "$branch" = "$default" ] && continue
+              if printf '%s\n' "$open_heads" | grep -qxF "$branch"; then
+                echo "::notice::Keeping $branch (head of an open pull request)"
+                continue
+              fi
+              echo "Deleting branch $branch"
+              gh api -X DELETE "repos/$REPO/git/refs/heads/$branch"
+            done

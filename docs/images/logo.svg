@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="logo">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4F8BFF"/>
+      <stop offset="1" stop-color="#2A5BD7"/>
+    </linearGradient>
+  </defs>
+  <rect x="16" y="16" width="480" height="480" rx="120" fill="url(#bg)"/>
+  <!-- speech bubble -->
+  <path fill="#FFFFFF" d="M176 136h160a60 60 0 0 1 60 60v84a60 60 0 0 1-60 60h-78l-66 52a8 8 0 0 1-13-6.3V340h-3a60 60 0 0 1-60-60v-84a60 60 0 0 1 60-60z"/>
+  <!-- four-point spark: the suggested reply -->
+  <path fill="#2F66E6" d="M256 172c6 34 20 48 54 54-34 6-48 20-54 54-6-34-20-48-54-54 34-6 48-20 54-54z"/>
+  <path fill="#2F66E6" opacity=".55" d="M332 266c3 15 9 21 24 24-15 3-21 9-24 24-3-15-9-21-24-24 15-3 21-9 24-24z"/>
+</svg>

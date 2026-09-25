@@ -1,0 +1,25 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Same mark as docs/images/logo.svg (512 grid), scaled into the safe zone. -->
+    <group
+        android:scaleX="0.18"
+        android:scaleY="0.18"
+        android:translateX="7.92"
+        android:translateY="6.48">
+        <!-- White chat bubble -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M176,136h160a60,60 0 0 1 60,60v84a60,60 0 0 1 -60,60h-78l-66,52a8,8 0 0 1 -13,-6.3V340h-3a60,60 0 0 1 -60,-60v-84a60,60 0 0 1 60,-60z" />
+        <!-- Four-point spark: the suggested reply -->
+        <path
+            android:fillColor="#2F66E6"
+            android:pathData="M256,172c6,34 20,48 54,54c-34,6 -48,20 -54,54c-6,-34 -20,-48 -54,-54c34,-6 48,-20 54,-54z" />
+        <path
+            android:fillColor="#2F66E6"
+            android:fillAlpha="0.55"
+            android:pathData="M332,266c3,15 9,21 24,24c-15,3 -21,9 -24,24c-3,-15 -9,-21 -24,-24c15,-3 21,-9 24,-24z" />
+    </group>
+</vector>

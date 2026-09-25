@@ -1,0 +1,38 @@
+name: Upstream inventory
+
+# Manual: dump every upstream pull request, issue and branch (state all) as JSON
+# into the job log, for triage in docs/UPSTREAM.md. Read-only. Pick the Android upstream
+# (default) or the Windows upstream (jev-chat-windows).
+
+on:
+  workflow_dispatch:
+    inputs:
+      upstream:
+        description: "Upstream repository to dump"
+        type: choice
+        default: jev-chat/jev-chat-jarvis
+        options:
+          - jev-chat/jev-chat-jarvis
+          - jev-chat/jev-chat-windows
+
+permissions:
+  contents: read
+
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+      UPSTREAM: ${{ inputs.upstream || 'jev-chat/jev-chat-jarvis' }}
+    steps:
+      - name: Pull requests
+        run: >-
+          gh pr list --repo "$UPSTREAM" --state all --limit 500
+          --json number,title,state,author,headRefName,baseRefName,createdAt,mergedAt,closedAt,additions,deletions,changedFiles,body
+      - name: Issues
+        run: >-
+          gh issue list --repo "$UPSTREAM" --state all --limit 500
+          --json number,title,state,stateReason,author,labels,createdAt,closedAt,comments,body
+      - name: Branches
+        run: gh api "repos/$UPSTREAM/branches?per_page=100" --jq '.[] | [.name, .commit.sha] | @tsv'

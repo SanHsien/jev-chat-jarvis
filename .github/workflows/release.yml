@@ -1,0 +1,177 @@
+name: release
+
+# Builds the APK and publishes it as a GitHub Release asset.
+# Trigger: push a tag vX.Y.Z, or run manually with the version (the tag is created
+# on the commit the run checks out). The tag must equal app/build.gradle.kts'
+# versionName, so a release can never ship an APK that reports another version.
+#
+# Signing: when the repository secrets JEV_KEYSTORE_B64 / JEV_KEYSTORE_PASSWORD /
+# JEV_KEY_ALIAS / JEV_KEY_PASSWORD exist, a signed release APK is published.
+# Without them the debug APK is published instead (debug-signed; a later build
+# signed by another key cannot be installed over it without uninstalling first).
+
+on:
+  push:
+    tags: ["v*.*.*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "versionName to release, e.g. 1.4.0 (tag v1.4.0 is created)"
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      version: ${{ steps.ver.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+
+      - name: Resolve version and check it matches versionName
+        id: ver
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          REF_NAME: ${{ github.ref_name }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT" = "workflow_dispatch" ]; then v="$INPUT_VERSION"; else v="${REF_NAME#v}"; fi
+          if ! printf '%s' "$v" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::version must be X.Y.Z, got '$v'"; exit 1
+          fi
+          declared=$(sed -n 's/^ *versionName = "\(.*\)".*/\1/p' app/build.gradle.kts)
+          if [ "$declared" != "$v" ]; then
+            echo "::error::tag v$v does not match versionName $declared"; exit 1
+          fi
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare signing (optional)
+        id: sign
+        env:
+          KEYSTORE_B64: ${{ secrets.JEV_KEYSTORE_B64 }}
+          STORE_PASSWORD: ${{ secrets.JEV_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.JEV_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.JEV_KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_B64" ]; then
+            echo "signed=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          dir="$RUNNER_TEMP/signing"; mkdir -p "$dir"
+          printf '%s' "$KEYSTORE_B64" | base64 -d > "$dir/release.jks"
+          {
+            echo "storeFile=$dir/release.jks"
+            echo "storePassword=$STORE_PASSWORD"
+            echo "keyAlias=$KEY_ALIAS"
+            echo "keyPassword=$KEY_PASSWORD"
+          } > "$dir/release.properties"
+          echo "props=$dir/release.properties" >> "$GITHUB_OUTPUT"
+          echo "signed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Build APK
+        id: build
+        env:
+          JEV_KEYSTORE_PROPS: ${{ steps.sign.outputs.props }}
+          SIGNED: ${{ steps.sign.outputs.signed }}
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          if [ "$SIGNED" = "true" ]; then
+            bash ./gradlew --no-daemon :app:assembleRelease
+            src=app/build/outputs/apk/release/app-release.apk
+            name="jev-assistant-v${VERSION}.apk"
+          else
+            bash ./gradlew --no-daemon :app:assembleDebug
+            src=app/build/outputs/apk/debug/app-debug.apk
+            name="jev-assistant-v${VERSION}-debug.apk"
+          fi
+          mkdir -p dist
+          cp "$src" "dist/$name"
+          (cd dist && sha256sum "$name" > "$name.sha256")
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+
+      - name: Extract release notes from CHANGELOG
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+          SIGNED: ${{ steps.sign.outputs.signed }}
+        run: |
+          awk -v v="$VERSION" '
+            $0 ~ "^## \\[" v "\\]" {on=1; next}
+            on && /^## \[/ {exit}
+            on {print}
+          ' CHANGELOG.md > dist/notes.md
+          # Upstream's MIT NOTICE asks the release page to credit the source.
+          printf '\n---\n基於 Jev 聊天助手（https://github.com/jev-chat/jev-chat-jarvis）二次開發，MIT 授權，Copyright © 2026 Finderchangchang 與 jev-chat 貢獻者；本 fork 由 SanHsien 維護，非原作者出品或背書。見 LICENSE 與 NOTICE（APK 內亦附）。Windows 版（chat-wingman-windows-*.zip）基於 JevChat-Windows（https://github.com/jev-chat/jev-chat-windows）二次開發，MIT 授權，Copyright © 2026 rezoch340 與 jev-chat 貢獻者，非原作者出品或背書；zip 內保留 LICENSE-jev-chat-windows 與 NOTICE-jev-chat-windows。發布包內含 PySide6-Fluent-Widgets（GPLv3，非商用免費，商用需另購授權），整體受 GPLv3 約束。\n' >> dist/notes.md
+          if [ "$SIGNED" != "true" ]; then
+            printf '\n---\n此版本附的是 debug 簽章的 APK。之後若改用正式簽章，需要先解除安裝舊版再安裝。\n' >> dist/notes.md
+          fi
+          cat dist/notes.md
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.ver.outputs.version }}
+          NAME: ${{ steps.build.outputs.name }}
+        run: |
+          tag="v$VERSION"
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$tag" "dist/$NAME" "dist/$NAME.sha256" --clobber --repo "$GITHUB_REPOSITORY"
+          else
+            gh release create "$tag" "dist/$NAME" "dist/$NAME.sha256" \
+              --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+              --title "$tag" --notes-file dist/notes.md
+          fi
+
+  # Windows 版（wingman/）：同一個 release 附上 zip。repo 只留最新一個 release，所以不另開 Windows release。
+  windows:
+    needs: release
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: python -m pip install -r requirements-windows.txt pyinstaller
+      - name: Build and upload
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.release.outputs.version }}
+        run: |
+          Set-Content -Path wingman/app/version.py -Value ('VERSION = "' + $env:VERSION + '"') -Encoding utf8
+          pyinstaller --noconfirm --clean tools/windows/wingman.spec
+          if ($LASTEXITCODE -ne 0) { throw "pyinstaller failed" }
+          $exe = 'dist\chat-wingman\chat-wingman.exe'
+          if (-not (Test-Path $exe)) { throw "exe not built: $exe" }
+          Copy-Item -Path LICENSE, NOTICE -Destination 'dist\chat-wingman'
+          Copy-Item -Path docs\licenses\jev-chat-windows\LICENSE -Destination 'dist\chat-wingman\LICENSE-jev-chat-windows'
+          Copy-Item -Path docs\licenses\jev-chat-windows\NOTICE -Destination 'dist\chat-wingman\NOTICE-jev-chat-windows'
+          $zip = "chat-wingman-windows-v$env:VERSION.zip"
+          Compress-Archive -Path 'dist\chat-wingman' -DestinationPath $zip
+          $hash = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLower()
+          Set-Content -Path "$zip.sha256" -Value "$hash  $zip" -Encoding ascii
+          gh release upload "v$env:VERSION" $zip "$zip.sha256" --clobber --repo $env:GITHUB_REPOSITORY
+          if ($LASTEXITCODE -ne 0) { throw "gh release upload failed" }
+
+  prune:
+    needs: [release, windows]
+    uses: ./.github/workflows/repo-cleanup.yml
+    permissions:
+      contents: write
+      pull-requests: read

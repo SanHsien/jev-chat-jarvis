@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">對話副駕</string>
+    <string name="a11y_desc">讀取當前聊天視窗文字，用於生成回覆建議。不會自動傳送訊息。</string>
+</resources>

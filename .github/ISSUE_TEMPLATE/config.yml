@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 本 fork 貢獻說明
+    url: https://github.com/SanHsien/jev-chat-jarvis/blob/main/CONTRIBUTING.md
+    about: LINE 支援、Vercel 預設、維護工具與 fork 文件問題看這裡。
+  - name: 安全問題私下回報（本 fork）
+    url: https://github.com/SanHsien/jev-chat-jarvis/security/advisories/new
+    about: 漏洞、金鑰或敏感資料問題不要建立公開 Issue。
+  - name: 上游原始專案
+    url: https://github.com/jev-chat/jev-chat-jarvis
+    about: X 適配器、判斷題目與 App 本體的問題，先確認是否也該回報原作者。

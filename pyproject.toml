@@ -1,0 +1,15 @@
+# Tool configuration only. This repository is an Android app, not a Python package:
+# no [project] / [build-system] on purpose.
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+# tools/jev/ is upstream's calibration scaffold; wingman/ and tools/windows/ come from
+# jev-chat-windows. They keep their upstream's style, not ours.
+extend-exclude = ["tools/jev", "wingman", "tools/windows"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
