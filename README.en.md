@@ -115,9 +115,9 @@ A reply helper that sits next to LINE desktop: on-device offline OCR reads the c
 LINE / X ──(accessibility nodes or screenshot OCR)──▶ recent messages
                                   │
               ┌───────────────────┴───────────────────┐
-              ▼                                        ▼
+              ▼                                       ▼
    Jev judgment (7 questions at once)       generative model drafts 3 candidates
-   intent / risk / need / action / reply-now     │
+   intent / risk / need / action / reply-now          │
               └───────────────────┬───────────────────┘
                                   ▼
                         Jev ranks the 3 candidates
