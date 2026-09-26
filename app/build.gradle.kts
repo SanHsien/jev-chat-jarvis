@@ -29,8 +29,8 @@ android {
         targetSdk = 35
         // Fork versioning: versionName = upstream major.minor.<fork sequence>,
         // versionCode = upstream versionCode * 100 + fork sequence.
-        versionCode = 510
-        versionName = "1.4.10"
+        versionCode = 511
+        versionName = "1.4.11"
 
         // ML Kit's bundled Chinese recognizer ships native libs for every ABI.
         // The target phone (and every phone this can run on: minSdk 30) is

@@ -139,12 +139,28 @@ def start_analyze(title, msgs):
                      daemon=True).start()
 
 
+def on_analyze(title):
+    """半自動：使用者按了「分析」，拿這個會話目前的記錄跑一次。"""
+    msgs = list(chat_of(title)["history"])
+    if not any(m[0] == "her" for m in msgs):
+        return
+    if state["busy"]:
+        state["rerun"] = (title, msgs)
+        ov.set_busy(True)
+    else:
+        start_analyze(title, msgs)
+
+
 def on_target_change(title, name):
-    """使用者挑了回覆對象：記下來，這個會話裡有對方的話就照新對象重跑一次。"""
+    """使用者挑了回覆對象：記下來，這個會話裡有對方的話就照新對象重跑一次。
+    Fork：半自動時只有已經分析過（有結果）才重跑，否則只更新待分析的對象。"""
     chat = chat_of(title)
     chat["target"] = name
     msgs = list(chat["history"])
     if not any(m[0] == "her" for m in msgs):
+        return
+    if not settings.auto_analyze() and chat["result"] is None:
+        ov.set_pending(title, target_of(title) or title)
         return
     if state["busy"]:
         state["rerun"] = (title, msgs)
@@ -211,7 +227,10 @@ def drain():
                     chat["senders"].remove(name)
                 chat["senders"].insert(0, name)
         ov.set_targets(title, chat["senders"], target_of(title))  # 顯不顯示這一行由懸浮窗按開關決定
-        if new[-1][0] == "her":  # 只有對方最新說話才值得分析
+        if new[-1][0] == "her" and not settings.auto_analyze():
+            # Fork：半自動（預設）。只顯示分析對象，按「分析」才呼叫模型，省 token
+            ov.set_pending(title, target_of(title) or title)
+        elif new[-1][0] == "her":  # 只有對方最新說話才值得分析
             msgs = list(chat["history"])
             if state["busy"]:
                 state["rerun"] = (title, msgs)
@@ -220,6 +239,7 @@ def drain():
                 start_analyze(title, msgs)
         else:
             state["rerun"] = None
+            ov.clear_pending(title)
             ov.set_busy(False)
             ov.set_status("你已回覆，等待對方的新訊息")
 
@@ -263,7 +283,7 @@ if __name__ == "__main__":  # Windows 的 spawn 會讓子程序重新執行本�
     debug_on = multiprocessing.Event()  # 同上，置位=子程序往佇列裡送整幀給除錯窗
     ov = Overlay(on_fill=fill_reply, on_toggle_capture=on_toggle_capture,
                  on_target_change=on_target_change, on_toggle_debug=set_debug,
-                 result_of=lambda t: chats.get(t, {}).get("result"))
+                 result_of=lambda t: chats.get(t, {}).get("result"), on_analyze=on_analyze)
     child = dbg = None
     try:
         state["hwnd"] = find_chat_hwnd()

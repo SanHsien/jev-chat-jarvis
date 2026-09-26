@@ -81,7 +81,7 @@ pwsh -NoProfile -File tools/dev_check.ps1 -Quick
 - **移除微信、飛書與 QQ**：三者的適配器、偽裝無障礙服務名與相關說明已刪除；微信另列 `BLOCKED_PKGS`（見硬約束 7）。
 - **判斷接口預設 Vercel**：全新安裝三路接口皆為 Vercel AI Gateway（`Prefs.seedVercelDefaultIfFresh()`），次選 OpenRouter。
 - **接口預設白名單**（2026-09-25 起，維護者決定）：只內建 OpenRouter、Vercel AI Gateway、TypeSafe、OpenCode Zen 與自定義；上游新增其他服務商的預設、模型或說明不收（上游 PR #41 類）；對外文件只陳述白名單，不寫排除理由、不點名其他服務商；舊設定由 `Prefs.dropRemovedVendors()` 遷移。
-- **半自動分析**（Android 預設）：對方新訊息只顯示分析對象與「分析」按鈕，點了才呼叫模型（`Prefs.autoAnalyze` 預設 `false`）；理由是省 token，見 `docs/DECISIONS.md`。
+- **半自動分析**（Android 與 Windows 預設）：懸浮窗不自己展開；Android 點懸浮球才解析分析對象並顯示「分析」按鈕，Windows 在狀態列顯示分析對象與「分析」按鈕，按了才呼叫模型（`Prefs.autoAnalyze`、`settings.auto_analyze()` 預設 `false`）；理由是省 token，見 `docs/DECISIONS.md`。
 - **產品名「對話副駕」**（英文 Chat Wingman）：介面、通知、README 一律用此名；「Jev」只指判斷模型。套件名 `com.jev.probe` 與 APK 檔名不變。
 - **上游出處**：依上游 NOTICE，README、設定頁「關於與隱私」與 release 說明都要寫「基於 Jev 聊天助手（https://github.com/jev-chat/jev-chat-jarvis）二次開發」，APK 內附 `LICENSE`／`NOTICE`；不得以上游名稱暗示原作者出品。Windows 版另依 JevChat-Windows 的〈版權與許可〉：README、設定頁〈關於與授權〉與 release 說明寫「基於 JevChat-Windows（https://github.com/jev-chat/jev-chat-windows）二次開發」，zip 內保留其 `LICENSE`／`NOTICE`，並註明 GPLv3 元件（PySide6-Fluent-Widgets）使發布包整體受 GPLv3 約束。
 - **App 介面繁體中文**：新增或修改介面字串一律用繁體（台灣用語）；比對其他 App 介面文字的清單要同時列簡、繁兩種寫法；`JevQuestions.kt` 的判斷題目不改。

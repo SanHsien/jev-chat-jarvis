@@ -9,7 +9,11 @@ repository's `CHANGELOG.md`.
 
 ## [Unreleased]
 
+## [1.4.11] - 2026-09-26
+
 ### Changed
+- **The overlay no longer opens by itself**: scrolling a LINE chat does not pop up the panel anymore. Tap the bubble to open it; it then works out who would be analyzed and offers "分析" (Analyze) / "略過" (Skip); models are called only on "分析".
+- **Windows is semi-automatic too** (like Android): a new message only shows who would be analyzed plus an "分析" (Analyze) button; Settings gains "對方發訊息時自動分析" (auto-analyze, off by default). Changing the reply target no longer re-runs the analysis in semi-automatic mode unless that chat was already analyzed.
 - The repository history is a single root commit (upstream's 143 commits no longer show); the divergence checker fetches the upstream baseline when needed.
 - Triaged Android upstream PR #64 (conversation-bound analysis; this fork already fixed the same issue in 1.4.5, adopting upstream's version is deferred).
 

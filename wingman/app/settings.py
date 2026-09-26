@@ -76,6 +76,10 @@ def reply_target() -> bool:
     """群聊指定回覆對象：開了才在介面上選回覆給誰、才把對象餵給模型。預設關。"""
     return bool(_read("reply_target", False))
 
+def auto_analyze() -> bool:
+    """對方一來新訊息就自動分析。Fork：預設關（半自動），只顯示分析對象，按「分析」才呼叫模型，省 token。"""
+    return bool(_read("auto_analyze", False))
+
 def thinking() -> bool:
     """起草時是否開思考模式：慢且貴，預設關。只有 OpenRouter / Anthropic / Gemini 吃它。"""
     return bool(_read("thinking", False))
@@ -153,7 +157,8 @@ def save(relationship_text: str | None = None, context_n: int | None = None, *,
          llm_key_text: str | None = None, draft_model_text: str | None = None,
          draft_base_url_text: str | None = None, reply_target_on: bool | None = None,
          style_text: str | None = None, thinking_on: bool | None = None,
-         check_update_on: bool | None = None, debug_view_on: bool | None = None) -> None:
+         check_update_on: bool | None = None, debug_view_on: bool | None = None,
+         auto_analyze_on: bool | None = None) -> None:
     """每個引數為空/None = 保留當前值。兩把 key 寫程序環境 + HKCU\\Environment，不寫任何檔案。"""
     jev = jev_provider_text if jev_provider_text in JEV_PROVIDERS else jev_provider()
     draft = draft_provider_text if draft_provider_text in DRAFT_PROVIDERS else draft_provider()
@@ -183,6 +188,7 @@ def save(relationship_text: str | None = None, context_n: int | None = None, *,
         "thinking": flag(thinking_on, thinking),
         "check_update": flag(check_update_on, check_update),
         "debug_view": flag(debug_view_on, debug_view),
+        "auto_analyze": flag(auto_analyze_on, auto_analyze),
     }
     with open(_CONFIG, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False)

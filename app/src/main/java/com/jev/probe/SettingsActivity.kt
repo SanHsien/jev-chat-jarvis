@@ -279,7 +279,7 @@ class SettingsActivity : AppCompatActivity() {
         card2.addView(wlEdit)
         val autoRow = toggleRow("對方發訊息時自動分析", prefs.autoAnalyze)
         card2.addView(autoRow)
-        card2.addView(text("關閉時（預設）只在懸浮窗顯示分析對象與「分析」按鈕，點了才送出，貼圖、照片或不需要回的訊息不花 token。", 11f, sub))
+        card2.addView(text("關閉時（預設）懸浮窗不會自己展開；點懸浮球才顯示分析對象與「分析」按鈕，按了才送出，貼圖、照片或不需要回的訊息不花 token。", 11f, sub))
 
         // --- OCR 兜底（B 階段）---
         val ocrFallbackRow = toggleRow("樹讀不到正文時用 OCR 兜底", prefs.ocrFallback)

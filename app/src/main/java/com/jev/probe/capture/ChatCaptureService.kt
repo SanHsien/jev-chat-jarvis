@@ -107,6 +107,18 @@ class ChatCaptureService : AccessibilityService() {
         overlay?.onManualAnalyze = {
             currentSnapshot?.let { pendingSnapshot = it; runAnalysis() }
         }
+        // Semi-automatic: the bubble tap opens the panel, and only then do we name
+        // the person the analysis would be about. No other message → leave the
+        // plain 「分析當前對話」 button that showIdle put there.
+        overlay?.onPanelOpened = {
+            currentSnapshot?.let { s ->
+                val last = s.messages.lastOrNull { it.side == "other" }
+                if (last != null) {
+                    val who = s.focusSpeaker() ?: s.title?.takeIf { it.isNotBlank() } ?: "對方"
+                    overlay?.showPending(who, last.text)
+                }
+            }
+        }
         // Bubble menu: file the open conversation as a knowledge-base contact.
         // Contacts are never created automatically — this is the one-tap way in.
         overlay?.onSaveContact = {
@@ -244,16 +256,11 @@ class ChatCaptureService : AccessibilityService() {
             snapshot.messages.takeLast(6).joinToString(" | ") { "${it.side}:${it.text.length}" }) // sides + lengths only, never content
 
         // Trigger only when the newest message is from the other person, and only
-        // if auto-analyze is on. Semi-automatic (the default): name the person the
-        // analysis would be about and wait for the 「分析」 tap. Otherwise the idle
-        // bubble (tap to analyze).
-        if (snapshot.latestFrom != "other") {
+        // if auto-analyze is on. Semi-automatic (the default): just the bubble —
+        // the panel never pops up on its own (scrolling LINE kept opening it); the
+        // bubble tap names the person via onPanelOpened and waits for 「分析」.
+        if (snapshot.latestFrom != "other" || !prefs.autoAnalyze) {
             main.post { overlay?.showIdle(snapshot.title) }; return
-        }
-        if (!prefs.autoAnalyze) {
-            val who = snapshot.focusSpeaker() ?: snapshot.title?.takeIf { it.isNotBlank() } ?: "對方"
-            val last = snapshot.messages.lastOrNull { it.side == "other" }?.text ?: ""
-            main.post { overlay?.showPending(who, last) }; return
         }
 
         pendingSnapshot = snapshot
@@ -648,6 +655,7 @@ class ChatCaptureService : AccessibilityService() {
         // Tear the overlay down and cut its callback so a stale button tap can
         // never call back into this dead instance.
         overlay?.onManualAnalyze = null
+        overlay?.onPanelOpened = null
         overlay?.onSaveContact = null
         overlay?.onOcrCapture = null
         overlay?.hide()

@@ -184,10 +184,11 @@ class _ReplyCard(_Surface):
 
 class Overlay:
     def __init__(self, on_fill, on_toggle_capture=None, on_target_change=None, result_of=None,
-                 on_toggle_debug=None):
+                 on_toggle_debug=None, on_analyze=None):
         """result_of(會話名) → 那個會話上次的結果或 None；切著看別的會話時用它把舊結果放回來。
         on_target_change(會話名, 人名) → 使用者在群裡挑了回覆對象。
-        on_toggle_debug(開不開) → 開關除錯檢視那個獨立視窗。"""
+        on_toggle_debug(開不開) → 開關除錯檢視那個獨立視窗。
+        on_analyze(會話名) → 半自動模式下使用者按了「分析」。"""
         self.app = QApplication.instance() or QApplication([])
         setTheme(Theme.LIGHT)
         setThemeColor(_GREEN, save=False)
@@ -195,10 +196,12 @@ class Overlay:
         self.on_toggle_capture = on_toggle_capture
         self.on_target_change = on_target_change
         self.on_toggle_debug = on_toggle_debug
+        self.on_analyze = on_analyze
         self.result_of = result_of
         self.cands = []
         self.cards = []
         self._busy = False
+        self._pending = None  # 半自動：等按「分析」的會話名
         self._current = False
         self._compact = None  # 斷點模式：None 保證 _relayout 第一次呼叫必定生效
         self._pageLayouts = []
@@ -367,6 +370,12 @@ class Overlay:
         body.addWidget(self.targetRow)
         self.status = _label("", 12, _MUTED)
         body.addWidget(self.status)
+        # Fork：半自動。對方有新訊息時只顯示分析對象，按了才呼叫模型（省 token）
+        self.analyzeButton = PrimaryPushButton("分析")
+        self.analyzeButton.setAccessibleName("分析這則新訊息")
+        self.analyzeButton.clicked.connect(self._analyze_clicked)
+        self.analyzeButton.hide()
+        body.addWidget(self.analyzeButton)
         self.progress = IndeterminateProgressBar()
         self.progress.setFixedHeight(3)
         self.progress.hide()
@@ -411,7 +420,7 @@ class Overlay:
         self.emptyTitle = _label("等待對方的新訊息", 17, "#304c3c", True)
         self.emptyTitle.setAlignment(Qt.AlignCenter)
         empty_box.addWidget(self.emptyTitle)
-        self.emptyHint = _label("保持聊天視窗開啟。\n收到新訊息後，回覆建議會出現在這裡。", 13, _MUTED)
+        self.emptyHint = _label("保持聊天視窗開啟。\n收到新訊息後，按「分析」產生回覆建議。", 13, _MUTED)
         self.emptyHint.setAlignment(Qt.AlignCenter)
         empty_box.addWidget(self.emptyHint)
         self.setupButton = PrimaryPushButton("前往設定")
@@ -488,6 +497,17 @@ class Overlay:
         box.addWidget(self.contextBox)
         box.addWidget(self._hint(
             "生成和判斷時看最近這麼多條訊息。太少會丟上下文，太多會稀釋重點，建議 6–12。"
+        ))
+        auto_row = QHBoxLayout()
+        auto_row.addWidget(_label("對方發訊息時自動分析", 13), 1)
+        self.autoSwitch = SwitchButton()
+        self.autoSwitch.setOnText("開")
+        self.autoSwitch.setOffText("關")
+        self.autoSwitch.setAccessibleName("對方發訊息時自動分析")
+        auto_row.addWidget(self.autoSwitch)
+        box.addLayout(auto_row)
+        box.addWidget(self._hint(
+            "關閉時（預設）只顯示分析對象，按「分析」才送出；貼圖、照片或不需要回的訊息不花 token。"
         ))
         target_row = QHBoxLayout()
         target_row.addWidget(_label("群聊指定回覆對象", 13), 1)
@@ -748,6 +768,7 @@ class Overlay:
         self.styleEdit.setText(settings.style())
         self.contextBox.setValue(settings.context())
         self.targetSwitch.setChecked(settings.reply_target())
+        self.autoSwitch.setChecked(settings.auto_analyze())
         self._set_group(self.jev, settings.jev_provider(), settings.jev_model())
         self._set_group(self.draft, settings.draft_provider(), settings.draft_model())
         self.baseEdit.setText(settings.draft_base_url())
@@ -793,7 +814,8 @@ class Overlay:
                           reply_target_on=self.targetSwitch.isChecked(),
                           style_text=self.styleEdit.text().strip(),
                           thinking_on=self.thinkingSwitch.isChecked(),
-                          check_update_on=self.updateSwitch.isChecked())
+                          check_update_on=self.updateSwitch.isChecked(),
+                          auto_analyze_on=self.autoSwitch.isChecked())
         except Exception:
             self._settings_feedback("儲存失敗，請檢查配置檔案是否可寫後重試。", error=True)
             return
@@ -897,8 +919,30 @@ class Overlay:
         else:
             self._empty_text()
 
+    def set_pending(self, title, who):
+        """半自動：這個會話有對方新訊息，等使用者按「分析」。只在正看著這個會話時露出按鈕。"""
+        self._pending = title
+        if title != self.current_chat():
+            return
+        self.set_status(f"新訊息 · 分析對象：{who}", "idle")
+        self.analyzeButton.show()
+
+    def clear_pending(self, title):
+        """這個會話已經不用分析了（你回了話）：收起「分析」按鈕。"""
+        if self._pending == title:
+            self._pending = None
+            self.analyzeButton.hide()
+
+    def _analyze_clicked(self):
+        self.analyzeButton.hide()
+        title, self._pending = self._pending, None
+        if title and self.on_analyze:
+            self.on_analyze(title)
+
     def set_busy(self, busy):
         self._busy = busy
+        if busy:
+            self.analyzeButton.hide()
         self.progress.setVisible(busy)
         if busy:
             self.invalidate_replies()
@@ -919,7 +963,8 @@ class Overlay:
         """空態卡片的預設文案，配好沒配好兩套說法。"""
         configured = settings.has_key()
         self.emptyTitle.setText("等待對方的新訊息" if configured else "先設定，再開始")
-        self.emptyHint.setText("保持聊天視窗開啟。\n收到新訊息後，回覆建議會出現在這裡。"
+        self.emptyHint.setText(("保持聊天視窗開啟。\n收到新訊息後，回覆建議會出現在這裡。" if settings.auto_analyze()
+                                else "保持聊天視窗開啟。\n收到新訊息後，按「分析」產生回覆建議。")
                                if configured else "配置模型和關係背景，\n讓建議更貼近你們的對話。")
         self.setupButton.setVisible(not configured)
 
@@ -1032,6 +1077,7 @@ class Overlay:
         self._follow_text()
         self._render_targets()
         self.show_cached(self.result_of(title) if self.result_of else None)
+        self.analyzeButton.setVisible(self._pending == title and not self._busy)
 
     def set_targets(self, chat, senders, current):
         """某個會話的發言人名單（最近的在前）和當前回覆對象；正看著它才重畫。"""

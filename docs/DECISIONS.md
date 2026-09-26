@@ -30,6 +30,15 @@
 - **CI**：Linux 跑維護工具與 `assembleDebug`；Windows 跑 `dev_check.ps1 -Quick -SkipUpstream`；
   上游變動不讓 CI 變紅（交給每週 `upstream-check.yml`）。
 
+## 2026-09-26: 懸浮窗不自動展開；Windows 版也改半自動
+
+- **背景**：實際使用時，捲動 LINE 對話會讓內容簽章改變，半自動模式的 `showPending()` 每次都把面板展開，擋住聊天。
+- **決策**：Android 偵測到新內容只顯示懸浮球（`showIdle`），面板從不自己展開；點懸浮球時 `OverlayController.onPanelOpened`
+  請服務依 `currentSnapshot` 解析分析對象（`focusSpeaker()`，沒有就用標題）並呼叫 `showPending()`，按「分析」才呼叫模型。
+  已有分析結果時點懸浮球照舊顯示結果。Windows 版比照：`settings.auto_analyze()` 預設關，新訊息只 `set_pending()`（狀態列顯示分析對象 +「分析」按鈕），
+  按了才 `start_analyze()`；半自動時換回覆對象只在已分析過時才重跑。
+- **取捨**：多一次點擊換不被打擾、省 token；需要全自動可在設定打開。
+
 ## 2026-09-25: `main` 改為單一根 commit
 
 - **背景**：先前的 squash commit 以兩個上游（`45a0876`、`946d3d1`）為父，GitHub 因而顯示 143 個 commit（上游 83 + 60）。維護者要求只留本 fork 的歷史。

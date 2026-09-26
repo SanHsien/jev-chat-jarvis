@@ -40,7 +40,7 @@ It only reads chats on your own device that you are entitled to see.
 **1. Get the APK.** Download the latest `jev-assistant-v*.apk` from [Releases](https://github.com/SanHsien/jev-chat-jarvis/releases) (Android 11+, ARM64 only), with a `.sha256` to verify it; or build it yourself (see Build below).
 
 ```bash
-adb install -r jev-assistant-v1.4.10.apk   # debug-signed builds end in -debug.apk
+adb install -r jev-assistant-v1.4.11.apk   # debug-signed builds end in -debug.apk
 ```
 
 **2. Keys.** App → Settings → endpoints. Fresh installs default all three routes to [Vercel AI Gateway](https://vercel.com/ai-gateway): put one Vercel key in the judge card, and reply and vision inherit it when left blank. Second choice is OpenRouter: pick "OpenRouter" on each card and enter an OpenRouter key. Every card has a one-tap connectivity test.
@@ -53,8 +53,9 @@ adb install -r jev-assistant-v1.4.10.apk   # debug-signed builds end in -debug.a
 ## Features
 
 ### Semi-automatic analysis (default)
-- When a new message from the other side is detected, the overlay only shows **who the analysis is about** (the newest speaker in a group) and that message; tap "分析" (Analyze) to run the judgment and drafting, or "略過" (Skip) to fold the panel.
-- **Why**: stickers, photos and one-word replies rarely need analysis, and sending every message automatically wastes tokens. Turn on "對方發訊息時自動分析" (auto-analyze) in Settings to analyze every message again.
+- The overlay **never opens by itself** (scrolling a LINE chat no longer pops it up). Tap the bubble to open it: it shows **who the analysis is about** (the newest speaker in a group) and their latest message; tap "分析" (Analyze) to run the judgment and drafting, or "略過" (Skip) to fold the panel.
+- The Windows version works the same way: a new message only shows who would be analyzed plus an "分析" (Analyze) button in the status line; models are called only when you press it.
+- **Why**: stickers, photos and one-word replies rarely need analysis, and sending every message automatically wastes tokens; a panel that pops up by itself also covers the chat. Turn on "對方發訊息時自動分析" (auto-analyze) in Settings to analyze every message again.
 
 ### Judgment and candidate replies
 - One judgment call returns: the other side's real intent, risk level (1–9), what they want, whether to reply now, and the best action, in about a second.
@@ -104,7 +105,7 @@ A reply helper that sits next to LINE desktop: on-device offline OCR reads the c
 - Other settings live in `config.json` next to the exe (in `wingman/` when run from source): relationship, speaking style, context size (3–30 messages, default 10), group reply target, check for updates on start (this repository's Releases), debug view, thinking mode for drafting (off by default).
 
 ### Using it
-- A new message from the other side → the overlay shows the judgment summary (suggested action, likely intent, what they need, tension 0–9) and three candidates (with Jev's win probability) → "填入" (Fill) → **review, edit and press send yourself**.
+- A new message from the other side → the overlay shows who would be analyzed plus an "分析" (Analyze) button (Settings can switch to auto-analyze) → pressing it shows the judgment summary (suggested action, likely intent, what they need, tension 0–9) and three candidates (with Jev's win probability) → "填入" (Fill) → **review, edit and press send yourself**.
 - The overlay follows the current chat (its name is OCR'd from the window header); history and candidates are kept per chat. Groups carry speaker names; you can pick whom to reply to and prefix "@name " (plain text) when filling.
 - The title-bar switch pauses capture; the bottom panel shows the live chat log so you can see what OCR read. Models are called only when the other side sends something new.
 
@@ -165,7 +166,7 @@ Layout: `app/` (the Android app), `wingman/` (the Windows version), `tools/windo
 
 ## Versioning
 
-`versionName` is `upstream major.minor.fork sequence` (currently `1.4.10`, based on upstream 1.4); see [`CHANGELOG.md`](CHANGELOG.md).
+`versionName` is `upstream major.minor.fork sequence` (currently `1.4.11`, based on upstream 1.4); see [`CHANGELOG.md`](CHANGELOG.md).
 
 ## License
 

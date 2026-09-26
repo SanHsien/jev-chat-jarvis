@@ -49,6 +49,13 @@ class OverlayController(private val ctx: Context) {
 
     var onManualAnalyze: (() -> Unit)? = null
 
+    /**
+     * The user opened the panel by tapping the bubble while no analysis is on
+     * screen: the service works out whom the analysis would be about and fills the
+     * panel via [showPending]. Nothing pops up by itself (scrolling LINE used to).
+     */
+    var onPanelOpened: (() -> Unit)? = null
+
     /** Bubble menu → file the open conversation as a knowledge-base contact. */
     var onSaveContact: (() -> Unit)? = null
 
@@ -267,6 +274,7 @@ class OverlayController(private val ctx: Context) {
     private fun toggle() {
         expanded = !expanded
         val params = lp ?: return
+        if (expanded && lastJudgment == null) onPanelOpened?.invoke()
         if (expanded) {
             // Open the panel from the left, fully on-screen and up high (clear of the
             // input box), regardless of which edge the bubble was snapped to.
@@ -298,9 +306,10 @@ class OverlayController(private val ctx: Context) {
     }
 
     /**
-     * Semi-automatic mode: a new message from the other side arrived. Show whom the
-     * analysis would be about and the newest message, with 「分析」 to spend the
-     * tokens and 「略過」 to fold the panel. Nothing is sent to any model until the tap.
+     * Semi-automatic mode, after the user tapped the bubble: whom the analysis
+     * would be about and the newest message, with 「分析」 to spend the tokens and
+     * 「略過」 to fold the panel. Never opens the panel itself; nothing is sent to any
+     * model until 「分析」.
      */
     fun showPending(who: String, lastText: String) {
         ensureRoot(); bubble?.alpha = 1f
@@ -314,7 +323,6 @@ class OverlayController(private val ctx: Context) {
             pill("略過", primary = false) { if (expanded) toggle() }.apply {
                 (layoutParams as LinearLayout.LayoutParams).topMargin = dp(8)
             }))
-        if (!expanded) toggle()
     }
 
     /**
