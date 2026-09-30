@@ -1,6 +1,10 @@
 # Fork 決策紀錄 (DECISIONS.md)
 
-## 2026-09-30：暫緩 AndroidX Core 1.19，避免重開不可建置的 PR
+## 2026-09-30：上游 PR #66–#71、issue #65–#72 審查（無新 release）
+
+上游仍無 `v1.4` 之後的 release，`reviewed_through`／`reviewed_release` 不動。4 個 PR 與 4 個 issue 全部不採用或暫緩，逐項證據見 [`UPSTREAM.md`](UPSTREAM.md) 2026-09-30 一節；#71（Soul／面板／OCR 加固）為 adoption pending：未合併、與本 fork 1.4.5 會話綁定重疊、Android 行為無法在本機 Windows gate 驗證。水位推進至 PR／issue #72。
+
+ Core 1.19，避免重開不可建置的 PR
 
 Dependabot PR #3 同時把 `androidx.core:core-ktx` 從 1.13.1 升到 1.19.1，
 並把 Gradle wrapper 從 9.7.1 升到 9.8.0。Android CI 在
