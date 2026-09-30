@@ -1,5 +1,18 @@
 # Fork 決策紀錄 (DECISIONS.md)
 
+## 2026-09-30：暫緩 AndroidX Core 1.19，避免重開不可建置的 PR
+
+Dependabot PR #3 同時把 `androidx.core:core-ktx` 從 1.13.1 升到 1.19.1，
+並把 Gradle wrapper 從 9.7.1 升到 9.8.0。Android CI 在
+`:app:checkDebugAarMetadata` 失敗：Core 1.19.1 要求 `compileSdk` 至少 37，
+本 fork 目前使用 35。PR 未通過 Android 建置，因此不合併。
+
+暫時忽略 `core-ktx` 的一般小版升級（包含可能相容的 1.14–1.18），
+保留 Gradle 其他更新的提案；最晚 2026-10-31 重新檢視此規則。
+安全 PR 仍須逐筆評估，必要時先遷移 `compileSdk`。
+等 Android SDK／AGP 與 `compileSdk` 遷移完成，並在 CI 跑過
+`testDebugUnitTest`、`assembleDebug` 後移除忽略規則，再審 Core 1.19。
+
 本文件記錄本 fork 相對於上游的所有架構決策、取捨與已審核變更。
 
 ## 2026-09-24: Fork 建立與 Windows 開發環境初始化

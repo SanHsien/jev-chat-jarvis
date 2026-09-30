@@ -43,6 +43,11 @@ updates:
       timezone: "Asia/Taipei"
     open-pull-requests-limit: 5
     labels: ["dependencies", "gradle"]
+    # core-ktx 1.19.1 requires compileSdk 37; this app still builds with 35.
+    # Revisit with the Android SDK/AGP migration and a passing Android build.
+    ignore:
+      - dependency-name: "androidx.core:core-ktx"
+        update-types: ["version-update:semver-minor"]
     groups:
       android:
         patterns: ["*"]
