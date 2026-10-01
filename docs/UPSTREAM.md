@@ -167,7 +167,31 @@ python tools/check_upstream_updates.py
 |---|---|---|---|---|
 | 64 | merged | 綁定來源會話，阻止過期分析結果與跨會話填入（+502／−126，新增 `ConversationSession`、`GuardedInputWriter` 與測試） | 暫緩 | 修的是上游 issue #61，本 fork 已在 1.4.5 以 run id 綁定自行修正（結果只顯示在原對話，填入只作用於原對話）；上游版本另在寫入輸入框前再驗證目標節點，較嚴格，但與本 fork 大改過的 `ChatCaptureService`／`OverlayController` 衝突面大。**回來重看**：上游發出含此修正的 release（`v1.5` 等）時，評估以上游的 `GuardedInputWriter` 取代本 fork 的做法。 |
 
-## Windows 上游分診紀錄（`jev-chat/jev-chat-windows`）
+### 2026-09-30（水位：PR／issue #72）
+
+#### 上游 `main` 與 release
+
+上游 tag 仍是 `v1.4`（本 fork 追 release），`reviewed_through` 不動。`45a0876..1af6f3d` 另有 24 個 `main` commit：官網（site）、README 與截圖打碼、PR #66 合併，皆為文件／官網，**不採用**。
+
+#### 新 Pull requests
+
+| # | 狀態 | 內容 | 結論 | 證據／回來重看的條件 |
+|---|---|---|---|---|
+| 66 | merged | 澄清 Android／桌面／網頁支援範圍（+3／−2，2 個文件檔） | 不適用 | 上游 README 文字；本 fork README 自有版本 |
+| 68 | open | DeepSeek 官方三路預設 + 抖音／多閃適配器 + QQ／多閃修正（+1339／−106，17 檔） | 不適用 | 接口白名單（2026-09-25）不收 DeepSeek 預設；QQ 已於本 fork 移除；抖音適配器是新平台功能且未合併 |
+| 70 | open | 修 DeepSeek 隱私政策連結 404（2 檔各 +1／−1） | 不適用 | DeepSeek 不在白名單，對外文件不提及 |
+| 71 | open | Soul 適配 + 面板穩定性 + 截圖／OCR 主線程加固（+351／−75，7 檔，含 `ConversationSession.kt`） | 暫緩（adoption pending） | 開放中未合併，且與本 fork 1.4.5 自行修正的會話綁定重疊；改動 Android 擷取路徑，本機 Windows gate 不能驗 Android 行為。觸發條件：合併並隨新 release 抵達時審查 |
+
+#### 新 Issues
+
+| # | 內容 | 結論 | 證據／回來重看的條件 |
+|---|---|---|---|
+| 65 | 澄清 Android／桌面／網頁支援範圍（文件） | 不適用 | 對應已合併的 #66 |
+| 67 | 微信開啟沒有懸浮窗 | 不適用 | 本 fork 已移除微信並列 `BLOCKED_PKGS` |
+| 69 | 希望可指定或屏蔽特定群／人 | 不適用 | 功能請求；觸發條件：上游實作並釋出時評估 |
+| 72 | 下載安卓版本提示 Not Found | 不適用 | 上游 release 資產問題，本 fork 有自己的 release |
+
+（`jev-chat/jev-chat-windows`）
 
 盤點方式：`Upstream inventory` workflow 選 `jev-chat/jev-chat-windows`。本 fork 的範圍：只支援 LINE 電腦版（原版目標聊天軟體不讀、不截圖、不填入）、
 接口預設白名單、介面繁體中文、絕不自動發送。基準 `946d3d1`（v0.1.11）。
