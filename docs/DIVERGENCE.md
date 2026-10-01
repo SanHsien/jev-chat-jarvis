@@ -54,10 +54,10 @@ commit（`tools/upstream_baseline.json` 的 `reviewed_through`）到現在，哪
 | `tools/jev/TASK.md` | 要求先讀 `CLAUDE.md` 與 `docs/acceptance.md`，背景寫「掛在微信旁」。 | 改為先讀 `AGENTS.md`，背景改為 LINE、X 等聊天 App。 | 原本引用的文件已刪除。 | 上游改此檔時保留這兩句的本 fork 版本，其餘照收。 |
 | `app/build.gradle.kts` | 套用 `kotlin.android` 外掛；`kotlinOptions`；簽章設定預設讀 `H:/android/keys/jev-release.properties`；versionCode `5`、versionName `1.4`；appcompat `1.7.0`、material `1.12.0`、constraintlayout `2.1.4`；無單元測試依賴。 | AGP 9 內建 Kotlin（頂層 `kotlin { compilerOptions }`）；簽章只在 `JEV_KEYSTORE_PROPS` 指定時啟用（採上游 PR #32）；versionCode `500`、versionName `1.4.0`；把 `LICENSE`／`NOTICE` 打包進 APK 的 `assets/legal/`（`LegalAssets` 任務，上游 NOTICE 要求再散布保留）；appcompat `1.8.0`、material `1.14.0`、constraintlayout `2.2.2`；`testImplementation("junit:junit:4.13.2")`（上游 PR #6／#21／#35 的測試需要）。 | AGP 9 遷移；Windows 路徑在 Linux／macOS 建置失敗；版本號公式；單元測試。 | 上游改版號時依公式重算；依賴取兩者較新者；保留無外掛 + 頂層 `kotlin {}` 與 `JEV_KEYSTORE_PROPS` 寫法；上游合併 #32 或自己完成 AGP 9 遷移後改用上游寫法。 |
 | `build.gradle.kts` | AGP `8.7.3`、`kotlin.android` `1.9.24`。 | AGP `9.4.1`；移除 Kotlin 外掛宣告。 | AGP 9 拒絕 `kotlin.android` 外掛。 | 上游升到 AGP ≥ 9.4.1 就採用上游並刪除本列；上游仍在 8.x 時保留本 fork 版本。 |
-| `gradle/wrapper/gradle-wrapper.properties` | Gradle `8.9`。 | Gradle `9.7.1`。 | AGP 9 需要 Gradle 9。 | 與 `build.gradle.kts` 同進退：上游升到 ≥ 9.7.1 就採用上游並刪除本列。 |
-| `gradle/wrapper/gradle-wrapper.jar` | Gradle 8.9 的 wrapper jar。 | Gradle 9.7.1 產生的 wrapper jar。 | 同上，由 `gradle wrapper` 產生。 | 衝突時以 `gradle wrapper --gradle-version <較新版>` 重新產生，不手動挑選。 |
+| `gradle/wrapper/gradle-wrapper.properties` | Gradle `8.9`。 | Gradle `9.8.0`。 | AGP 9 需要 Gradle 9。 | 與 `build.gradle.kts` 同進退：上游升到 ≥ 9.8.0 就採用上游並刪除本列。 |
+| `gradle/wrapper/gradle-wrapper.jar` | Gradle 8.9 的 wrapper jar。 | PR #4 隨 Gradle 9.8.0 一同更新的 wrapper jar。 | 同上，由 `gradle wrapper` 產生。 | 衝突時以 `gradle wrapper --gradle-version <較新版>` 重新產生，不手動挑選。 |
 | `gradlew` | Gradle 8.9 的啟動腳本，模式 `100644`。 | Gradle 9.7.1 的版本，模式 `100755`。 | 同上。 | 同上，重新產生。 |
-| `gradlew.bat` | Gradle 8.9 的 Windows 啟動腳本。 | Gradle 9.7.1 的版本。 | 同上。 | 同上，重新產生。 |
+| `gradlew.bat` | Gradle 8.9 的 Windows 啟動腳本。 | Gradle 9.8.0 的版本。 | 同上。 | 同上，重新產生。 |
 | `app/src/main/AndroidManifest.xml` | 無障礙服務註冊為 `com.google.android.accessibility.selecttospeak.SelectToSpeakService`，設定 `@xml/config_disguised`。 | 直接註冊 `.capture.ChatCaptureService`，設定 `@xml/config_accessibility`。 | 偽裝系統元件名只為了讓微信吐出節點樹；微信已移除。 | 上游改 Manifest 時照收，但服務名與設定檔名維持本 fork 版本。 |
 | `app/src/main/java/com/google/android/accessibility/selecttospeak/SelectToSpeakService.kt` | 偽裝成系統元件的無障礙服務子類別。 | 刪除。 | 同上。 | 上游再改一律不收。 |
 | `app/src/main/res/xml/config_disguised.xml` | 無障礙服務設定（檔名帶 disguised）。 | 改名為 `config_accessibility.xml`（本 fork 新增檔），描述字串改用 `a11y_desc`。 | 同上。 | 上游改此檔的屬性時，同步套用到 `config_accessibility.xml`。 |
