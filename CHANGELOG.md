@@ -8,6 +8,10 @@
 
 ## [未發佈]
 
+### 變更
+
+- 刪除 `CLAUDE.md`，Claude Code 專屬補充併入 `AGENTS.md`；所有 agent 只讀 `AGENTS.md`。
+
 ## [1.4.11] - 2026-09-26
 
 ### 變更

@@ -48,7 +48,7 @@ python tools/check_upstream_updates.py
 
 - 本 fork 已刪除上游的 `apk/`、`site/`、`docs/{acceptance,probe_spec,v1.3-*}.md`、`README` 簡中原文與微信／飛書程式碼；
   上游再改這些路徑時一律保留刪除（`git rm` 解衝突），判準見 `docs/DIVERGENCE.md`。
-- `CLAUDE.md` 衝突時保留本 fork 版本（只匯入 `AGENTS.md`），上游新增的產品事實人工整理進 `AGENTS.md`。
+- `CLAUDE.md` 上游再改時一律保留刪除（`git rm` 解衝突），上游新增的產品事實人工整理進 `AGENTS.md`。
 
 ## 分診紀錄
 

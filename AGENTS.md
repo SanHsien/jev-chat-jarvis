@@ -1,6 +1,7 @@
 # AGENTS.md
 
 給 Codex、Claude Code、Cursor 與其他自動化代理在本專案工作時的指引。
+回覆用繁體中文，直接給結果。
 
 ## 專案定位
 

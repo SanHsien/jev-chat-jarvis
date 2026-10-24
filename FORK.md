@@ -22,7 +22,7 @@
 
 | 項目 | 說明 |
 |---|---|
-| `AGENTS.md` / `CLAUDE.md` | AI 維護規則與產品硬約束的單一真相源；`CLAUDE.md` 只匯入 `AGENTS.md` |
+| `AGENTS.md` | AI 維護規則與產品硬約束的單一真相源；上游的 `CLAUDE.md` 已刪除 |
 | `NOTICE.md` / `FORK.md` | 來源、授權與同步說明 |
 | `README.md` / `README.en.md`、`CHANGELOG.md` / `CHANGELOG.en.md` | 繁中主檔與內容一致的英文鏡像 |
 | `SECURITY.md` / `CONTRIBUTING.md` / `CODE_OF_CONDUCT.md` | 回報與協作規則 |

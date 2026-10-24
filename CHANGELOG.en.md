@@ -9,6 +9,10 @@ repository's `CHANGELOG.md`.
 
 ## [Unreleased]
 
+### Changed
+
+- Removed `CLAUDE.md`; its Claude Code notes now live in `AGENTS.md`, the only instruction file every agent reads.
+
 ## [1.4.11] - 2026-09-26
 
 ### Changed

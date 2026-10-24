@@ -33,7 +33,7 @@ commit（`tools/upstream_baseline.json` 的 `reviewed_through`）到現在，哪
 | 上游檔案 | 上游原狀 | 本 fork 狀態 | 為什麼分岔 | 跟進上游時怎麼處理 |
 |---|---|---|---|---|
 | `README.md` | 簡中 README：介紹、截圖、平台支援（含微信、飛書、QQ）、FAQ、交流群、贊助、打賞。 | 全文改寫為繁中；與 `README.en.md` 段落一一對應；標明 LINE 為本 fork 原創、已移除微信、飛書、QQ；不收交流群、贊助、打賞。 | 公開入口以繁中為主；本 fork 產品範圍與上游不同。 | 上游改 README 時只把仍適用的**產品事實**（X 行為、權限步驟、限制）人工合併進本檔與 `README.en.md`，兩份同步；其餘不收。 |
-| `CLAUDE.md` | 上游產品硬約束與大量微信／飛書／QQ 實測紀錄（簡中）。 | 改為只匯入 `AGENTS.md` 的薄檔；仍適用的硬約束與 X／OCR／知識庫背景整理進 `AGENTS.md`。 | fleet 慣例：`AGENTS.md` 為單一真相源；微信、飛書、QQ 內容已不適用。 | 衝突時保留本 fork 版本；上游新增的、與 X／OCR／知識庫有關的事實，人工整理進 `AGENTS.md`。 |
+| `CLAUDE.md` | 上游產品硬約束與大量微信／飛書／QQ 實測紀錄（簡中）。 | 已刪除；仍適用的硬約束與 X／OCR／知識庫背景整理進 `AGENTS.md`。 | fleet 慣例：只維護 `AGENTS.md`（Claude Code 在沒有 `CLAUDE.md` 時直接讀它）；微信、飛書、QQ 內容已不適用。 | 保留刪除（`git rm` 解衝突）；上游新增的、與 X／OCR／知識庫有關的事實，人工整理進 `AGENTS.md`。 |
 | `CHANGELOG.md` | 上游 1.0–1.4 的簡中更新日誌（多處微信說明）。 | 改為本 fork 的變更紀錄（Keep a Changelog），英文鏡像為 `CHANGELOG.en.md`；上游歷史指向上游 repo。 | 版本號改為 `上游主.次.fork 序號`，需要 fork 自己的紀錄。 | 衝突時保留本 fork 版本；上游新版的內容若被本 fork 採納，寫成本 fork 的一筆變更。 |
 | `CONTRIBUTORS.md` | 上游三端（Android／macOS／Windows）維護者、平台支援表（含微信）與貢獻流程。 | 繁中；保留上游 Android 原作者與測試者署名，加上本 fork 維護者；移除微信平台表與 macOS／Windows 名單。 | 署名要保留，但平台範圍已不同。 | 上游新增 Android 貢獻者時補進「上游原作者」表；其餘不收。 |
 | `PRIVACY.md` | 適用範圍為上游；預設 OpenRouter；連結指向上游與 chatjevs.com；截圖說明以飛書為例。 | 適用範圍改為本 fork；預設改 Vercel AI Gateway（加 Vercel 隱私政策連結）；連結改指本 fork；拿掉飛書例子與官網連結；移除 DeepSeek、阿里雲百鍊的預設與連結、公眾號聯絡方式，回覆預設改 Gemini。全文轉為繁體中文（s2twp）；新增第 11 節 Windows 版。 | 隱私權政策必須描述本 fork 實際行為。 | 上游改政策時逐段比對：資料處理方式的變更照收，網址、預設服務商與平台範圍維持本 fork 版本。 |
