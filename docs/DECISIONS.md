@@ -1,5 +1,15 @@
 # Fork 決策紀錄 (DECISIONS.md)
 
+## 2026-10-25：審查上游 v1.7，採用 #74 與 #71 的穩定性做法
+
+上游 v1.7（`45a0876..c57ecc1`，42 個 commit）逐項分診記在 [`UPSTREAM.md`](UPSTREAM.md) 2026-10-25 一節；`reviewed_through` 推進到 `c57ecc1`、`reviewed_release` 為 `v1.7`，水位 PR #78／issue #82。
+
+- **採用**：#74（請求體明確 `stream:false`）；#71 的截圖回呼與 OCR 裁切離開主執行緒（專用單執行緒池，結果 post 回主執行緒）；每輪分析的 120 秒硬逾時，改在 `JevClient` 實作（`jev/HardTimeout.kt`）而不是照抄上游寫進 `ChatCaptureService` 的版本，因為本 fork 的 `worker` 只有 2 條執行緒，DNS 卡住一條就會餓死全部。
+- **不採用**：WhatsApp、Soul、抖音（範圍是 LINE 與 X）；常駐卡片與 `NewMessageGate`（與「懸浮窗不自己展開、半自動分析」的定案衝突）；「回覆語言跟隨對方」（本 fork 回覆一律繁體中文）；`ConversationSession`（本 fork 以 run 序號＋標題＋前景套件綁定會話，已涵蓋 #61／#64）。觸發條件逐項寫在 `UPSTREAM.md`。
+- **驗證限制**：截圖與 OCR 的執行緒改動只有編譯與單元測試（CI 的 Android build），沒有實機驗證；`HardTimeout` 有 JVM 單元測試。
+- **版號**：不發版，沿用 1.4.x 序列；`CHANGELOG` 記在「未發佈」。
+- **下次審查必讀**：上游 `c57ecc1` 之後把 Android 搬到 `cn/`，並新增 `global/`，路徑對映見 `UPSTREAM.md`。
+
 ## 2026-09-30：上游 PR #66–#71、issue #65–#72 審查（無新 release）
 
 上游仍無 `v1.4` 之後的 release，`reviewed_through`／`reviewed_release` 不動。4 個 PR 與 4 個 issue 全部不採用或暫緩，逐項證據見 [`UPSTREAM.md`](UPSTREAM.md) 2026-09-30 一節；#71（Soul／面板／OCR 加固）為 adoption pending：未合併、與本 fork 1.4.5 會話綁定重疊、Android 行為無法在本機 Windows gate 驗證。水位推進至 PR／issue #72。

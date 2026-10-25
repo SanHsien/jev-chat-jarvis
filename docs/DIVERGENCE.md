@@ -41,16 +41,12 @@ commit（`tools/upstream_baseline.json` 的 `reviewed_through`）到現在，哪
 | `apk/` | 上游預建的 release APK（含微信／飛書程式碼）。 | 刪除。改由 CI 上傳 debug APK。 | APK 內容與本 fork 程式碼不一致。 | 上游新增或更新 `apk/` 一律不收（`git rm` 解衝突）。 |
 | `site/` | 上游官網（chatjevs.com）原始碼。 | 刪除。 | 本 fork 不架官網；使用上游網域會暗示由原作者背書。 | 上游改 `site/` 一律不收。 |
 | `docs/acceptance.md` | 上游微信探針驗收標準。 | 刪除。 | 內容為微信專用。 | 上游再改一律不收。 |
-| `docs/probe_spec.md` | 上游微信探針規格。 | 刪除。 | 內容為微信專用。 | 上游再改一律不收。 |
 | `docs/v1.3-*.md` | 上游 v1.3 內部規劃與晨間檢查清單（大量微信／飛書內容）。 | 刪除。 | 上游內部工作文件；仍適用的事實已整理進 `AGENTS.md`。 | 上游再改一律不收。 |
 | `docs/images/logo.png` | 上游吉祥物 logo。 | 刪除；README 改用本 fork 的 `docs/images/logo.svg`。 | 上游 NOTICE 要求不得以其名稱暗示原作者出品；維護者要求重新設計。 | 上游換 logo 不收。 |
 | `docs/images/overlay.png` | README 截圖：微信群、簡中介面、DeepSeek。 | 刪除，README 移除截圖段。 | 內容是微信群與真人暱稱頭像，與本 fork（LINE、繁中、接口預設白名單）不符。 | 不收；本 fork 需要截圖時用 LINE 假資料重拍。 |
 | `docs/images/settings.png` | README 截圖：簡中設定頁、OpenRouter + DeepSeek。 | 刪除。 | 同上。 | 同上。 |
 | `docs/images/sponsors/` | 贊助商圖（含博查）。 | 刪除。 | README 未引用。 | 上游新增贊助圖一律不收。 |
 | `app/src/main/res/drawable/ic_launcher_foreground.xml` | 白色對話框 + 三點。 | 改為與 `docs/images/logo.svg` 相同的對話框 + 星芒。 | App 圖示與 README logo 一致。 | 上游改圖示不收。 |
-| `docs/images/wechat-*.png` | 微信群、公眾號 QR 圖。 | 刪除。 | 微信相關宣傳圖。 | 上游新增同類圖片一律不收。 |
-| `docs/images/donate/` | 微信讚賞碼。 | 刪除。 | 微信相關。 | 同上。 |
-| `docs/images/mascot/` | 微信吉祥物圖。 | 刪除。 | 微信相關。 | 同上。 |
 | `tools/jev/TASK.md` | 要求先讀 `CLAUDE.md` 與 `docs/acceptance.md`，背景寫「掛在微信旁」。 | 改為先讀 `AGENTS.md`，背景改為 LINE、X 等聊天 App。 | 原本引用的文件已刪除。 | 上游改此檔時保留這兩句的本 fork 版本，其餘照收。 |
 | `app/build.gradle.kts` | 套用 `kotlin.android` 外掛；`kotlinOptions`；簽章設定預設讀 `H:/android/keys/jev-release.properties`；versionCode `5`、versionName `1.4`；appcompat `1.7.0`、material `1.12.0`、constraintlayout `2.1.4`；無單元測試依賴。 | AGP 9 內建 Kotlin（頂層 `kotlin { compilerOptions }`）；簽章只在 `JEV_KEYSTORE_PROPS` 指定時啟用（採上游 PR #32）；versionCode `500`、versionName `1.4.0`；把 `LICENSE`／`NOTICE` 打包進 APK 的 `assets/legal/`（`LegalAssets` 任務，上游 NOTICE 要求再散布保留）；appcompat `1.8.0`、material `1.14.0`、constraintlayout `2.2.2`；`testImplementation("junit:junit:4.13.2")`（上游 PR #6／#21／#35 的測試需要）。 | AGP 9 遷移；Windows 路徑在 Linux／macOS 建置失敗；版本號公式；單元測試。 | 上游改版號時依公式重算；依賴取兩者較新者；保留無外掛 + 頂層 `kotlin {}` 與 `JEV_KEYSTORE_PROPS` 寫法；上游合併 #32 或自己完成 AGP 9 遷移後改用上游寫法。 |
 | `build.gradle.kts` | AGP `8.7.3`、`kotlin.android` `1.9.24`。 | AGP `9.4.1`；移除 Kotlin 外掛宣告。 | AGP 9 拒絕 `kotlin.android` 外掛。 | 上游升到 AGP ≥ 9.4.1 就採用上游並刪除本列；上游仍在 8.x 時保留本 fork 版本。 |
@@ -58,9 +54,24 @@ commit（`tools/upstream_baseline.json` 的 `reviewed_through`）到現在，哪
 | `gradle/wrapper/gradle-wrapper.jar` | Gradle 8.9 的 wrapper jar。 | PR #7 隨 Gradle 9.8.1 一同更新的 wrapper jar。 | 同上，由 `gradle wrapper` 產生。 | 衝突時以 `gradle wrapper --gradle-version <較新版>` 重新產生，不手動挑選。 |
 | `gradlew` | Gradle 8.9 的啟動腳本，模式 `100644`。 | Gradle 9.7.1 的版本，模式 `100755`。 | 同上。 | 同上，重新產生。 |
 | `gradlew.bat` | Gradle 8.9 的 Windows 啟動腳本。 | Gradle 9.8.0 的版本。 | 同上。 | 同上，重新產生。 |
-| `app/src/main/AndroidManifest.xml` | 無障礙服務註冊為 `com.google.android.accessibility.selecttospeak.SelectToSpeakService`，設定 `@xml/config_disguised`。 | 直接註冊 `.capture.ChatCaptureService`，設定 `@xml/config_accessibility`。 | 偽裝系統元件名只為了讓微信吐出節點樹；微信已移除。 | 上游改 Manifest 時照收，但服務名與設定檔名維持本 fork 版本。 |
-| `app/src/main/java/com/google/android/accessibility/selecttospeak/SelectToSpeakService.kt` | 偽裝成系統元件的無障礙服務子類別。 | 刪除。 | 同上。 | 上游再改一律不收。 |
-| `app/src/main/res/xml/config_disguised.xml` | 無障礙服務設定（檔名帶 disguised）。 | 改名為 `config_accessibility.xml`（本 fork 新增檔），描述字串改用 `a11y_desc`。 | 同上。 | 上游改此檔的屬性時，同步套用到 `config_accessibility.xml`。 |
+| `app/src/main/AndroidManifest.xml` | 無障礙服務註冊 `.capture.ChatCaptureService`（v1.5 起），設定 `@xml/accessibility_service_config`；v1.4 以前註冊成偽裝的 `SelectToSpeakService`。 | 直接註冊 `.capture.ChatCaptureService`，設定 `@xml/config_accessibility`。 | 偽裝系統元件名只為了讓微信吐出節點樹；微信已移除。 | 上游改 Manifest 時照收，但服務名與設定檔名維持本 fork 版本。 |
+| `.github/workflows/build-debug.yml` | 上游 v1.5 的除錯包 workflow。 | 不收。 | 本 fork 由 `ci.yml` 建置並跑單元測試，不發除錯 APK。 | 上游新增或修改一律不收。 |
+| `README.en.md` | 上游英文與越南文 README。 | 英文 README 為本 fork 自寫；越南文不收。 | README 以本 fork 的範圍（LINE、X、繁體中文）撰寫。 | 上游改 README 一律不收。 |
+| `README.vi.md` | 上游英文與越南文 README。 | 英文 README 為本 fork 自寫；越南文不收。 | README 以本 fork 的範圍（LINE、X、繁體中文）撰寫。 | 上游改 README 一律不收。 |
+| `app/src/main/java/com/jev/probe/capture/ConversationSession.kt` | 上游以 `ConversationSession` 與 `GuardedInputWriter` 綁定分析結果和填入的來源會話（v1.4 之後）。 | 不收。 | 本 fork 的 1.4.5 以 run 序號＋標題＋前景套件自行解決同一問題（`ChatCaptureService.isLive`）。 | 上游改這幾個檔不收；若發現本 fork 的綁定漏了某種情境，再比對上游的測試案例。 |
+| `app/src/main/java/com/jev/probe/capture/GuardedInputWriter.kt` | 上游以 `ConversationSession` 與 `GuardedInputWriter` 綁定分析結果和填入的來源會話（v1.4 之後）。 | 不收。 | 本 fork 的 1.4.5 以 run 序號＋標題＋前景套件自行解決同一問題（`ChatCaptureService.isLive`）。 | 上游改這幾個檔不收；若發現本 fork 的綁定漏了某種情境，再比對上游的測試案例。 |
+| `app/src/test/java/com/jev/probe/capture/ConversationSessionTest.kt` | 上游以 `ConversationSession` 與 `GuardedInputWriter` 綁定分析結果和填入的來源會話（v1.4 之後）。 | 不收。 | 本 fork 的 1.4.5 以 run 序號＋標題＋前景套件自行解決同一問題（`ChatCaptureService.isLive`）。 | 上游改這幾個檔不收；若發現本 fork 的綁定漏了某種情境，再比對上游的測試案例。 |
+| `app/src/test/java/com/jev/probe/capture/GuardedInputWriterTest.kt` | 上游以 `ConversationSession` 與 `GuardedInputWriter` 綁定分析結果和填入的來源會話（v1.4 之後）。 | 不收。 | 本 fork 的 1.4.5 以 run 序號＋標題＋前景套件自行解決同一問題（`ChatCaptureService.isLive`）。 | 上游改這幾個檔不收；若發現本 fork 的綁定漏了某種情境，再比對上游的測試案例。 |
+| `app/src/main/java/com/jev/probe/capture/NewMessageGate.kt` | 上游 v1.7 常駐卡片的「新訊息才更新」閘門。 | 不收。 | 本 fork 的懸浮窗不自己展開、半自動分析（`DECISIONS.md` 2026-09-26）。 | 維護者決定採用常駐卡片時再評估。 |
+| `app/src/test/java/com/jev/probe/capture/NewMessageGateTest.kt` | 上游 v1.7 常駐卡片的「新訊息才更新」閘門。 | 不收。 | 本 fork 的懸浮窗不自己展開、半自動分析（`DECISIONS.md` 2026-09-26）。 | 維護者決定採用常駐卡片時再評估。 |
+| `app/src/main/java/com/jev/probe/capture/WhatsAppAdapter.kt` | 上游 v1.7 的 WhatsApp 一對一適配器與錄屏測試資料。 | 不收。 | 本 fork 的範圍是 LINE 與 X。 | 維護者要支援 WhatsApp 時再評估。 |
+| `app/src/test/java/com/jev/probe/capture/WhatsAppRulesTest.kt` | 上游 v1.7 的 WhatsApp 一對一適配器與錄屏測試資料。 | 不收。 | 本 fork 的範圍是 LINE 與 X。 | 維護者要支援 WhatsApp 時再評估。 |
+| `app/src/test/resources/whatsapp/` | 上游 v1.7 的 WhatsApp 一對一適配器與錄屏測試資料。 | 不收。 | 本 fork 的範圍是 LINE 與 X。 | 維護者要支援 WhatsApp 時再評估。 |
+| `docs/images/group-*.png` | 上游 README 用的交流群與公眾號 QR、友站圖、流程圖。 | 不收。 | 微信相關宣傳圖；本 fork 的 README 不引用。 | 上游新增同類圖片一律不收。 |
+| `docs/images/mp-qr.png` | 上游 README 用的交流群與公眾號 QR、友站圖、流程圖。 | 不收。 | 微信相關宣傳圖；本 fork 的 README 不引用。 | 上游新增同類圖片一律不收。 |
+| `docs/images/friends/` | 上游 README 用的交流群與公眾號 QR、友站圖、流程圖。 | 不收。 | 微信相關宣傳圖；本 fork 的 README 不引用。 | 上游新增同類圖片一律不收。 |
+| `assets/` | 上游 README 用的交流群與公眾號 QR、友站圖、流程圖。 | 不收。 | 微信相關宣傳圖；本 fork 的 README 不引用。 | 上游新增同類圖片一律不收。 |
+| `app/src/main/res/xml/accessibility_service_config.xml` | 無障礙服務設定（上游 v1.5 起的檔名；先前叫 `config_disguised.xml`）。 | 不收；改用本 fork 的 `config_accessibility.xml`，描述字串改用 `a11y_desc`。 | 本 fork 早在 v1.4 時就已去除偽裝服務並改名，沿用自己的檔名。 | 上游改此檔的屬性時，同步套用到 `config_accessibility.xml`。 |
 | `app/src/main/res/values/strings.xml` | `a11y_desc_disguised`。 | 改名為 `a11y_desc`（文字不變）。 | 同上。 | 上游新增字串照收；此鍵名維持本 fork 版本。 |
 | `app/src/main/java/com/jev/probe/capture/ChatCaptureService.kt` | `open class`；`adapters` 含 QQ、X、飛書；微信短路提示；飛書專用氣泡重量測；未回報服務連線狀態；非同步分析結果不綁定發起的對話，單一 `analyzing` 旗標由兩段非同步共用，暫時標題直接沿用上一個標題。 | 非 open；`adapters` = LINE、X；微信改為 `BLOCKED_PKGS`；氣泡重量測改由適配器提供；OCR 尾字另去除 `已讀`／`未讀`／`既読`；`CaptureHealth` 回報（上游 PR #35）；每次分析帶 run id，結果與填入只作用於原對話，分析中到達的新訊息結束後補跑（上游 issue #61）；暫時標題只在同一對話時沿用；未開自動分析時對方新訊息只顯示懸浮球，點懸浮球經 `onPanelOpened` 才解析分析對象並呼叫 `showPending()`（半自動）。 | 移除微信、飛書、QQ；微信封鎖是保護措施（上游 issue #42／#46／#47／#52／#59）；LINE 讀回條；首頁健康狀態；結果錯置與填錯聊天室（#61）。 | 上游改此檔時保留：`BLOCKED_PKGS`、無飛書／QQ 適配器、LINE 註冊行、適配器提供的重量測、run 綁定與暫時標題規則；其餘照收。移除 `BLOCKED_PKGS` 須先經維護者同意（`AGENTS.md` 硬約束 8）。 |
 | `app/src/main/java/com/jev/probe/capture/ChatAppAdapter.kt` | QQ／微信／飛書／X 四個適配器與微信標題、飛書氣泡工具函式。 | 刪除 `QQAdapter`、`WeChatAdapter`、`findWeChatTitle`、`FeishuAdapter`、`collectFeishuBubbleRects`；`XAdapter` 保留發件人名稱為 `speaker`；檔尾新增 `LineAdapter`／`A11yUiNode`（本 fork 原創，規則在 `LineExtractor.kt`，群組時設定面板提示）。 | 移除微信、飛書、QQ；新增 LINE；群組分辨發言者。 | 上游改 X 適配器時照收並保留 `speaker`；上游再改微信／飛書／QQ 部分不收；保留檔尾 `LineAdapter`／`A11yUiNode`。 |
@@ -71,12 +82,14 @@ commit（`tools/upstream_baseline.json` 的 `reviewed_through`）到現在，哪
 | `app/src/main/java/com/jev/probe/core/ChatModels.kt` | `Msg(side, text)`；`BubbleRect` 註解以飛書為例；`signature()` 只看最後 6 則訊息。 | `Msg` 加 `speaker: String? = null`（群組發言者）；註解改為通用敘述；`signature()` 納入會話標題並以長度前綴分隔欄位（採上游 PR #6）。 | 群組分辨發言者；移除飛書；切換聯絡人不沿用舊分析。 | 保留 `speaker` 欄位（預設 null，上游呼叫端不受影響）；上游合併 #6 後簽章部分改用上游版本。 |
 | `app/src/main/java/com/jev/probe/core/kb/KbModels.kt` | 聯絡人註解以微信／QQ／飛書與 `com.tencent.mm` 為例。 | 改為 LINE／X 與 `jp.naver.line.android`。 | 同上。 | 照收上游，只保留這段註解的本 fork 版本。 |
 | `app/src/main/java/com/jev/probe/overlay/OverlayController.kt` | 兩處註解提到微信。 | 改為通用敘述；新增 `showPending()`（半自動：分析對象 + 「分析」「略過」，不自己展開）與 `onPanelOpened`（點懸浮球時才解析分析對象）。 | 同上；維護者要求省 token。 | 照收上游，保留 `showPending()`。 |
-| `app/src/main/java/com/jev/probe/jev/VisionClient.kt` | 註解指向 `docs/v1.3-plan.md`；註解提到 DeepSeek／DashScope；`supportsVision()` 擋 `api.deepseek.com`。 | 拿掉已刪除文件的引用；註解改為通用敘述；刪除 `supportsVision()`。 | 文件已刪除；DeepSeek 預設已移除。 | 照收上游，不收 DeepSeek／DashScope 相關判斷。 |
+| `app/src/main/java/com/jev/probe/jev/VisionClient.kt` | 註解指向 `docs/v1.3-plan.md`；註解提到 DeepSeek／DashScope；`supportsVision()` 擋 `api.deepseek.com`。 | 拿掉已刪除文件的引用；註解改為通用敘述；刪除 `supportsVision()`；請求體加 `stream=false`（採上游 #74，2026-10-25）。 | 文件已刪除；DeepSeek 預設已移除。 | 照收上游，不收 DeepSeek／DashScope 相關判斷；`stream=false` 與上游一致，無分歧。 |
 | `app/src/main/java/com/jev/probe/capture/ocr/OcrEngine.kt` | 註解指向 `docs/v1.3-plan.md`。 | 拿掉已刪除文件的引用。 | 同上。 | 同上。 |
-| `app/src/main/java/com/jev/probe/jev/ReplyClient.kt` | 備援解析會吃掉回覆開頭的數字；對話一律標「我／对方」。 | 改呼叫 `ReplyLineParser.parse`（採上游 PR #21）；群組時每行標發言者並指明回覆對象。 | 「1.5 小時」開頭數字被刪；群組分辨發言者。 | 上游合併 #21 後解析部分改用上游版本；保留群組標註（只在 `isGroupChat()` 時生效）。 |
+| `app/src/main/java/com/jev/probe/jev/ReplyClient.kt` | 備援解析會吃掉回覆開頭的數字；對話一律標「我／对方」。 | 改呼叫 `ReplyLineParser.parse`（採上游 PR #21）；群組時每行標發言者並指明回覆對象；請求體加 `stream=false`（採上游 #74）；提示詞一律繁體中文，不採 v1.7 的「語言跟隨對方」。 | 「1.5 小時」開頭數字被刪；群組分辨發言者；介面與回覆語言定為繁體中文（台灣）。 | 上游合併 #21 後解析部分改用上游版本；保留群組標註（只在 `isGroupChat()` 時生效）；上游改提示詞語言規則一律不收，其餘照收。 |
 | `app/src/main/java/com/jev/probe/capture/KeepAliveService.kt` | `startForeground` 失敗時沒有回報。 | 失敗時記到 `CaptureHealth` 並 `stopSelf()`（採上游 PR #35）。 | 首頁要能顯示保活失敗。 | 上游合併 #35 後採用上游版本並刪除本列。 |
 | `app/src/main/java/com/jev/probe/jev/JevQuestions.kt` | `buildState` 每則訊息只有 `from`／`text`。 | 群組時加 `name`、`type`、`participants`、`focus_person`、`note`；一對一 state 不變。 | 群組分析對象。 | 上游改 `buildState` 時照收，再把群組區塊接回（只在 `isGroupChat()` 時加欄位）；題目文字不動。 |
-| `app/src/main/java/com/jev/probe/capture/ocr/ScreenCapture.kt` | 截圖失敗訊息為簡中。 | 轉為繁體（見上方「全域分岔」）。 | 介面文字繁體化。 | 上游改中文字串時合併後重跑 `s2twp`；其餘照收。 |
+| `app/src/main/java/com/jev/probe/capture/ocr/ScreenCapture.kt` | 截圖失敗訊息為簡中；截圖回呼跑在主執行緒。 | 轉為繁體（見上方「全域分岔」）；回呼改在專用背景執行緒，結果再 post 回主執行緒（採上游 #71 的做法，2026-10-25）。 | 介面文字繁體化；HardwareBuffer 轉 bitmap 在部分機型卡住 UI 數秒。 | 上游改中文字串時合併後重跑 `s2twp`；背景執行緒做法與上游一致，其餘照收。 |
+| `app/src/main/java/com/jev/probe/capture/ocr/MlKitOcr.kt` | 裁切與 `InputImage` 包裝跑在呼叫端（主）執行緒。 | 改在單一背景執行緒處理，回呼仍回主執行緒；座標欄位加 `@Volatile`（採上游 #71 的做法）。 | 同上，避免卡 UI。 | 與上游 #71 一致；上游再改 OCR 流程時照收，並確認呼叫端仍在最後一個回呼才回收 bitmap。 |
+| `app/src/main/java/com/jev/probe/jev/JevClient.kt` | 判斷與候選回覆直接呼叫，無整體逾時。 | 兩條路都包 `withHardTimeout`（120 秒，本 fork 新增 `jev/HardTimeout.kt`）；逾時回錯誤訊息，不再一直轉圈。 | `HttpURLConnection` 不限制 DNS 解析，單次卡住會讓一輪分析永遠不結束（上游 #71 同一症狀，做法不同）。 | 上游改 `JevClient` 時照收，並保留逾時包裝。 |
 | `app/src/main/java/com/jev/probe/core/kb/KbSelfCheck.kt` | 自檢訊息為簡中。 | 轉為繁體（見上方「全域分岔」）。 | 介面文字繁體化。 | 上游改中文字串時合併後重跑 `s2twp`；其餘照收。 |
 | `app/src/main/java/com/jev/probe/core/kb/KbStore.kt` | 聯絡人提示為簡中。 | 轉為繁體（見上方「全域分岔」）。 | 介面文字繁體化。 | 上游改中文字串時合併後重跑 `s2twp`；其餘照收。 |
 | `app/src/main/java/com/jev/probe/jev/HttpJson.kt` | 錯誤訊息的接口名稱為簡中。 | 轉為繁體（見上方「全域分岔」）。 | 介面文字繁體化。 | 上游改中文字串時合併後重跑 `s2twp`；其餘照收。 |

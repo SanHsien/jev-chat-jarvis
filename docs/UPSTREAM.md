@@ -167,6 +167,59 @@ python tools/check_upstream_updates.py
 |---|---|---|---|---|
 | 64 | merged | 綁定來源會話，阻止過期分析結果與跨會話填入（+502／−126，新增 `ConversationSession`、`GuardedInputWriter` 與測試） | 暫緩 | 修的是上游 issue #61，本 fork 已在 1.4.5 以 run id 綁定自行修正（結果只顯示在原對話，填入只作用於原對話）；上游版本另在寫入輸入框前再驗證目標節點，較嚴格，但與本 fork 大改過的 `ChatCaptureService`／`OverlayController` 衝突面大。**回來重看**：上游發出含此修正的 release（`v1.5` 等）時，評估以上游的 `GuardedInputWriter` 取代本 fork 的做法。 |
 
+### 2026-10-25（水位：PR #78、issue #82；審查到 v1.7 `c57ecc1`，分支 10 個）
+
+上游 2026-10-05 發佈 v1.7（`v1.5`、`v1.6` 併入 v1.7，沒有獨立 tag）。`45a0876..c57ecc1` 共 42 個 commit，逐項結論如下；`c57ecc1` 之後到 `bd3fe42` 的 18 個 `main` commit 是 README、官網與倉庫改版，**未隨 release 抵達**，下一個 release 再審。
+
+判準八掃描：對 `45a0876..upstream/main` 全部新增行找超長單行（>400 字）、行內長串空白後接內容、`eval`／`new Function(`／`Runtime.getRuntime`／`ProcessBuilder`／`DexClassLoader`、長 base64、零寬與雙向控制字元；只命中多語 README 的長段落、`gradlew` 標準樣板，以及 WhatsApp 測試資料裡的雙向標記（轉錄自真機畫面），無藏匿內容。
+
+#### Commit／release（`45a0876..c57ecc1`）
+
+| 上游 | 內容 | 結論 | 證據／回來重看的條件 |
+|---|---|---|---|
+| #74 `081a678` | 回覆與視覺請求明確 `stream:false` | **採用** | `ReplyClient.kt`、`VisionClient.kt` 的請求體原本沒有 `stream`；加上不改行為，只避免相容端點預設串流。 |
+| #71 `b2665c6` 截圖／OCR 主執行緒加固 | 截圖回呼與 bitmap 裁切離開主執行緒 | **採用做法** | 本 fork `ScreenCapture.shoot` 用 `service.mainExecutor`、`MlKitOcr.recognize` 在呼叫端執行緒裁切（原註解承認回呼在主執行緒）。移植：專用單執行緒池，結果 post 回主執行緒；`ocrByRects`／`ocrWholeScreen` 都只在最後一個回呼才 `recycle`，確認不會早於裁切。 |
+| #71 卡死面板 120 秒硬上限 | DNS 卡住讓一輪永遠不結束 | **採用症狀，換做法** | `HttpJson` 只設 `connectTimeout`／`readTimeout`，DNS 不受限；本 fork 的 `worker` 只有 2 條執行緒，卡 1 條就餓死。上游把逾時寫進其 `ChatCaptureService`（本 fork 該檔差異大，不套 diff），本 fork 在 `JevClient` 包 `withHardTimeout`（`jev/HardTimeout.kt`，附單元測試）。 |
+| #71 `ConversationSession` 身分放寬、忽略自家浮層事件、前景確認 1.5 秒才隱藏 | 會話辨識與浮層穩定性 | 不採用 | 本 fork 沒有 `ConversationSession`；`isLive()` 以 run 序號＋標題＋前景套件判斷，身分不含訊息簽章（`ChatCaptureService.isLive`），上游描述的「簽章變動使結果作廢」不成立。其餘兩項是對 QQ／Soul 的觀察，本 fork 無實機重現。**回來重看**：LINE／X 實測出現浮層閃爍或自我觸發。 |
+| #71 Soul 適配、`build-debug.yml` | 新平台、除錯包 workflow | 不採用 | 範圍是 Android（LINE、X）；Soul 是中國社交 App。 |
+| #64 `a6c83c3` | 分析結果綁定來源會話 | 已在本 fork | 1.4.5 自行修正（見 2026-09-25 第二輪）；上游實作是 `ConversationSession`／`GuardedInputWriter`，與本 fork 的 run 序號機制等價且互不相容。 |
+| `17dd335` v1.5 | 移除偽裝成系統元件的無障礙服務、清理適配器 | 已在本 fork | `DIVERGENCE.md` 已登記：本 fork 早已直接註冊 `.capture.ChatCaptureService`。 |
+| `5e4d3ed`、`6104ad3` v1.6 | 調整支持範圍、使用風險提示 | 不適用 | 上游 README 文字。 |
+| `e6a440f` v1.7 | WhatsApp 一對一適配器、回覆語言跟隨對方 | 不採用 | 範圍是 LINE 與 X；WhatsApp 是新平台。提示詞語言：本 fork 定為「一律繁體中文（台灣用語）」。**回來重看**：維護者要支援 WhatsApp，或要求 X 英文對話回英文。 |
+| `c57ecc1` v1.7 | 常駐分析卡片、`NewMessageGate`、「換一組」、候選條數設定（`OverlayController` +707／−392） | 不採用 | 與已定案的互動衝突：懸浮窗不自己展開、半自動分析（`DECISIONS.md` 2026-09-26、2026-09-25）。`OverlayController` 在本 fork 另有群組與接口白名單修改，重寫版無法套用。**回來重看**：維護者想要「換一組」或常駐卡片。 |
+| `46fec19` | QQ 群聊面板空白 | 不適用 | QQ 已移除。 |
+| `081a678` 以外的 `docs`／`site`／README 多語／圖片／CONTRIBUTORS | 文件與官網 | 不採用 | 本 fork 自有 README，`site/` 已刪。 |
+
+#### 未隨 release 抵達的 `main` 變動（`c57ecc1..bd3fe42`）
+
+| 內容 | 結論 | 證據／回來重看的條件 |
+|---|---|---|
+| 倉庫改版：Android 移到 `cn/`、`global/`（WhatsApp 海外版，獨立 App）、README 移到 `.github/` | 暫不處理，**下次審查必讀** | 路徑整批改名；`check_divergence.py` 以基準到現在的路徑差異比對，審查下一個 release 時要把 `app/`→`cn/app/` 對映後再比。本 fork 維持單層結構。 |
+| `global/` 海外版 | 不採用 | 另一個 App，範圍外。 |
+
+#### Pull requests（`--state all`，編號 >72）
+
+| # | 狀態 | 內容 | 結論 | 證據／回來重看的條件 |
+|---|---|---|---|---|
+| 73 | merged | 海外版 WhatsApp（`global/`） | 不採用 | 同上，範圍外。 |
+| 74 | merged | `stream:false` | 採用 | 見上。 |
+| 78 | merged | 海外版維護者與 `CODEOWNERS` | 不適用 | 上游治理檔。 |
+| 68 | open | DeepSeek 三路預設、抖音／多閃適配器 | 不適用 | 白名單不收 DeepSeek；抖音是新平台（沿 2026-09-30 結論）。 |
+| 63 | open | 判斷接口新增 Opper 預設 | 不採用 | 接口預設白名單（2026-09-25）只留 OpenRouter／Vercel／TypeSafe／OpenCode Zen。**回來重看**：維護者要擴白名單。 |
+
+#### Issues（編號 >72）
+
+| # | 內容 | 結論 |
+|---|---|---|
+| 75、77、82 | 微信支援詢問、微信群 QR 過期、Windows 版解壓報錯 | 不適用（微信已移除；QR 與 Windows 版是上游自己的資產） |
+| 76 | WhatsApp 分析失敗 HTTP 429 | 不適用（WhatsApp） |
+| 79、80 | 上游討論與第三方研究報告 | 不適用（無可執行項目） |
+| 81 | 想要照片辨識功能 | 不適用：功能請求；上游 `feat/vision-judge`（+1138，區域設定檔含國內接口，與白名單衝突）未合併。**回來重看**：隨 release 抵達時評估看圖判斷。 |
+
+#### 分支
+
+新增 4 個：`docs/contributors-global-edition`、`docs/platform-support-clarity`（皆為已合併 PR #78、#66 的殘留）、`feat/vision-judge`（未合併實驗，見 issue 81）、`overseas/release-v0.1`（海外版發佈分支）。全部不採用。
+
 ### 2026-09-30（水位：PR／issue #72）
 
 #### 上游 `main` 與 release

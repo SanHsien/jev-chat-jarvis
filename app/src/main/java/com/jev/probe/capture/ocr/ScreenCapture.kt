@@ -9,6 +9,8 @@ import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
 import android.view.Display
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -73,12 +75,19 @@ class ScreenCapture(
         lastAttemptAt = now
 
         val done = AtomicBoolean(false)
+        // The shot callback runs on [shotExecutor], off the main thread: the
+        // HardwareBuffer -> bitmap copy stalled the UI thread for seconds on some
+        // devices (upstream jev-chat-jarvis #71). Everything user-visible is posted
+        // back to main here; the compareAndSet stays on the calling thread, so a late
+        // result can never race the timeout runnable.
         val finish: (Result) -> Unit = { r ->
             if (done.compareAndSet(false, true)) {
-                restoreOverlay()
-                if (r is Result.Ok) failStreak = 0
-                else failStreak = (failStreak + 1).coerceAtMost(MAX_STREAK)
-                onResult(r)
+                main.post {
+                    restoreOverlay()
+                    if (r is Result.Ok) failStreak = 0
+                    else failStreak = (failStreak + 1).coerceAtMost(MAX_STREAK)
+                    onResult(r)
+                }
             }
         }
 
@@ -88,7 +97,7 @@ class ScreenCapture(
     }
 
     private fun shoot(finish: (Result) -> Unit, done: AtomicBoolean) {
-        val exec = service.mainExecutor
+        val exec = shotExecutor
         // Which area the picture will cover. Set just before the window shot is
         // issued and read inside the callback, so the mapping always matches the
         // call that actually produced the bitmap.
@@ -186,6 +195,11 @@ class ScreenCapture(
 
         /** How long we wait for the screenshot callback before giving up. */
         private const val TIMEOUT_MS = 3000L
+
+        /** One shared off-main thread for the screenshot callback. Daemon, so it
+         *  never blocks process exit. */
+        private val shotExecutor: ExecutorService =
+            Executors.newSingleThreadExecutor { r -> Thread(r, "jev-shot").apply { isDaemon = true } }
 
         // Global across instances on purpose: the system limit is per service,
         // and the service may build a new ScreenCapture per call site.

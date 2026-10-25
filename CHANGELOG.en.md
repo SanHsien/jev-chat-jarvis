@@ -12,6 +12,9 @@ repository's `CHANGELOG.md`.
 ### Changed
 
 - Removed `CLAUDE.md`; its Claude Code notes now live in `AGENTS.md`, the only instruction file every agent reads.
+- Screenshot callbacks and OCR bitmap cropping moved off the main thread (no more multi-second UI stalls on some devices); judge and reply calls now have a 120 s hard timeout, so a hung DNS lookup shows an error instead of an endless spinner.
+- Reply and vision requests now send `stream: false` explicitly (upstream #74).
+- Triaged upstream v1.7 (WhatsApp, persistent card, etc.): not adopted; reasons and revisit conditions are in `docs/UPSTREAM.md`.
 
 ## [1.4.11] - 2026-09-26
 
