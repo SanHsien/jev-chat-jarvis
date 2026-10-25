@@ -58,7 +58,10 @@ class MlKitOcr : OcrEngine {
                     Log.w(TAG, "ocr crop failed: ${e.javaClass.simpleName}")
                     main.post { cb(emptyList()) }; return@execute
                 }
-                ox = r.left; oy = r.top; cropped = true
+                ox = r.left; oy = r.top
+                // createBitmap returns the source itself when the rect covers all of it;
+                // that one belongs to the caller and must not be recycled here.
+                cropped = src !== bitmap
             } else {
                 src = bitmap; ox = 0; oy = 0; cropped = false
             }

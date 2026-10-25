@@ -78,8 +78,8 @@ class ScreenCapture(
         // The shot callback runs on [shotExecutor], off the main thread: the
         // HardwareBuffer -> bitmap copy stalled the UI thread for seconds on some
         // devices (upstream jev-chat-jarvis #71). Everything user-visible is posted
-        // back to main here; the compareAndSet stays on the calling thread, so a late
-        // result can never race the timeout runnable.
+        // back to main here; the compareAndSet guarantees onResult runs once; a result
+        // that loses the race to the timeout is dropped.
         val finish: (Result) -> Unit = { r ->
             if (done.compareAndSet(false, true)) {
                 main.post {

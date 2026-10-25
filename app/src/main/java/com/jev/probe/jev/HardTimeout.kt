@@ -14,8 +14,9 @@ import java.util.concurrent.TimeoutException
  * so a single wedged lookup could hold a worker thread (and with it the whole
  * analysis round) forever: the panel sat on "generating" and the busy flag never
  * cleared. The call runs on its own daemon pool; past [timeoutMs] the caller gets
- * an [IOException] it already knows how to show, and the stuck thread is
- * interrupted instead of being waited on.
+ * an [IOException] it already knows how to show and stops waiting. The stuck
+ * thread is interrupted, but a DNS lookup ignores that, so it may stay busy until
+ * the lookup returns; it is a daemon thread and never blocks the caller.
  */
 internal class HardTimeoutException(message: String) : IOException(message)
 
@@ -32,6 +33,11 @@ internal fun <T> withHardTimeout(timeoutMs: Long = HARD_TIMEOUT_MS, block: () ->
     } catch (e: TimeoutException) {
         future.cancel(true)
         throw HardTimeoutException("請求逾時，請稍後再試")
+    } catch (e: InterruptedException) {
+        // The caller's worker was shut down (service destroyed): stop the call too.
+        future.cancel(true)
+        Thread.currentThread().interrupt()
+        throw HardTimeoutException("請求已中止")
     } catch (e: ExecutionException) {
         throw e.cause ?: e
     }

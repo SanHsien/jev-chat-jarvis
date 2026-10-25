@@ -20,6 +20,19 @@ class HardTimeoutTest {
     }
 
     @Test
+    fun interruptedCallerGetsAnIoErrorNotARawInterrupt() {
+        val t = Thread.currentThread()
+        Thread { Thread.sleep(100); t.interrupt() }.start()
+        try {
+            assertThrows(HardTimeoutException::class.java) {
+                withHardTimeout(10_000) { Thread.sleep(10_000); 1 }
+            }
+        } finally {
+            Thread.interrupted() // clear the flag restored by withHardTimeout
+        }
+    }
+
+    @Test
     fun callerSeesTheOriginalException() {
         val e = assertThrows(IllegalStateException::class.java) {
             withHardTimeout(1_000) { throw IllegalStateException("boom") }
