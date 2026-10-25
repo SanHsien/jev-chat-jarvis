@@ -1,6 +1,11 @@
 from __future__ import annotations
 
-from wingman.app.pending import PendingAnalysis
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from wingman.app.pending import PendingAnalysis  # noqa: E402
 
 
 def test_new_message_in_another_chat_keeps_the_first_chat_pending() -> None:
