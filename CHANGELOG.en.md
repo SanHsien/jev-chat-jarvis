@@ -12,6 +12,7 @@ repository's `CHANGELOG.md`.
 ### Fixed
 
 - Windows semi-automatic mode: while one conversation waits for analysis, a new message in another LINE conversation no longer displaces its 「Analyze」 or makes the button analyze the wrong chat; pending analyses are now tracked per conversation.
+- The upstream check listed PRs/issues from a single `gh` page, so once upstream outgrew it the oldest unreviewed items vanished while the report still said "triaged through #N". A full page that has not reached the watermark now reports "not checked".
 
 ### Changed
 

@@ -29,6 +29,7 @@ REPO_ROOT = SCRIPT_DIR.parent
 BASELINE_PATH = SCRIPT_DIR / "upstream_baseline.json"
 UPSTREAM_REF_PREFIX = "refs/upstream-check"
 DEFAULT_DECISION_LOG = "docs/DECISIONS.md"
+TICKET_LIMIT = 200  # how many newest PRs / issues one `gh` call asks for
 DEFAULT_DECISION_LOG = "docs/DECISIONS.md"
 TRACK_MODES = ("release", "commit")
 # Upstream tags two-part versions (v1.3, v1.4); a missing patch reads as 0.
@@ -248,7 +249,7 @@ def collect_new_tickets(baseline: dict, kind: str) -> list[dict] | None:
                 "--state",
                 "all",
                 "--limit",
-                "50",
+                str(TICKET_LIMIT),
                 "--json",
                 "number,title",
             ],
@@ -269,6 +270,11 @@ def collect_new_tickets(baseline: dict, kind: str) -> list[dict] | None:
         items = json.loads(result.stdout)
     except ValueError:
         return None
+    # `gh ... list` returns only the newest TICKET_LIMIT items. A full page that still
+    # has not reached the watermark may hide older unreviewed items; answer "not
+    # checked" instead of a short list that reads as complete.
+    if len(items) >= TICKET_LIMIT and min(item["number"] for item in items) > watermark:
+        return None
     return sorted(
         (item for item in items if item["number"] > watermark),
         key=lambda item: item["number"],
@@ -286,8 +292,9 @@ def render_ticket_section(
     if tickets is None:
         lines.extend(
             [
-                "Not checked: `gh` was unavailable, unauthenticated, or the baseline",
-                "does not name a GitHub repository. Reported as such rather than as",
+                "Not checked: `gh` was unavailable, unauthenticated, the baseline does not",
+                "name a GitHub repository, or more items exist than one `gh` page holds.",
+                "Reported as such rather than as",
                 '"nothing to review" -- the difference matters.',
                 "",
             ]
