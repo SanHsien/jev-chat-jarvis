@@ -9,6 +9,10 @@ repository's `CHANGELOG.md`.
 
 ## [Unreleased]
 
+### Fixed
+
+- Windows semi-automatic mode: while one conversation waits for analysis, a new message in another LINE conversation no longer displaces its 「Analyze」 or makes the button analyze the wrong chat; pending analyses are now tracked per conversation.
+
 ### Changed
 
 - Removed `CLAUDE.md`; its Claude Code notes now live in `AGENTS.md`, the only instruction file every agent reads.

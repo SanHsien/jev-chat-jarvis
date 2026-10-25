@@ -19,6 +19,7 @@ from qfluentwidgets import (
 )
 
 from wingman.app import settings
+from wingman.app.pending import PendingAnalysis
 from wingman.app.version import VERSION
 from wingman.core import jev_client, llm, providers
 from wingman.core.questions import CHOICE_LABELS
@@ -201,7 +202,7 @@ class Overlay:
         self.cands = []
         self.cards = []
         self._busy = False
-        self._pending = None  # 半自動：等按「分析」的會話名
+        self._pending = PendingAnalysis()  # 半自動：等按「分析」的會話們
         self._current = False
         self._compact = None  # 斷點模式：None 保證 _relayout 第一次呼叫必定生效
         self._pageLayouts = []
@@ -921,7 +922,7 @@ class Overlay:
 
     def set_pending(self, title, who):
         """半自動：這個會話有對方新訊息，等使用者按「分析」。只在正看著這個會話時露出按鈕。"""
-        self._pending = title
+        self._pending.mark(title)
         if title != self.current_chat():
             return
         self.set_status(f"新訊息 · 分析對象：{who}", "idle")
@@ -929,14 +930,13 @@ class Overlay:
 
     def clear_pending(self, title):
         """這個會話已經不用分析了（你回了話）：收起「分析」按鈕。"""
-        if self._pending == title:
-            self._pending = None
+        if self._pending.clear(title) and title == self.current_chat():
             self.analyzeButton.hide()
 
     def _analyze_clicked(self):
         self.analyzeButton.hide()
-        title, self._pending = self._pending, None
-        if title and self.on_analyze:
+        title = self.current_chat()  # 按鈕只對正看著的會話露出，分析的就是它
+        if self._pending.take(title) and self.on_analyze:
             self.on_analyze(title)
 
     def set_busy(self, busy):
@@ -1077,7 +1077,7 @@ class Overlay:
         self._follow_text()
         self._render_targets()
         self.show_cached(self.result_of(title) if self.result_of else None)
-        self.analyzeButton.setVisible(self._pending == title and not self._busy)
+        self.analyzeButton.setVisible(self._pending.is_pending(title) and not self._busy)
 
     def set_targets(self, chat, senders, current):
         """某個會話的發言人名單（最近的在前）和當前回覆對象；正看著它才重畫。"""
