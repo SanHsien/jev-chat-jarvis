@@ -87,3 +87,7 @@ pwsh -NoProfile -File tools/dev_check.ps1 -Quick
 - **上游出處**：依上游 NOTICE，README、設定頁「關於與隱私」與 release 說明都要寫「基於 Jev 聊天助手（https://github.com/jev-chat/jev-chat-jarvis）二次開發」，APK 內附 `LICENSE`／`NOTICE`；不得以上游名稱暗示原作者出品。Windows 版另依 JevChat-Windows 的〈版權與許可〉：README、設定頁〈關於與授權〉與 release 說明寫「基於 JevChat-Windows（https://github.com/jev-chat/jev-chat-windows）二次開發」，zip 內保留其 `LICENSE`／`NOTICE`，並註明 GPLv3 元件（PySide6-Fluent-Widgets）使發布包整體受 GPLv3 約束。
 - **App 介面繁體中文**：新增或修改介面字串一律用繁體（台灣用語）；比對其他 App 介面文字的清單要同時列簡、繁兩種寫法；`JevQuestions.kt` 的判斷題目不改。
 - **版本號**：`versionName` 為 `上游主.次.fork 序號`（例如 `1.4.0`、`1.4.1`），`versionCode` 為 `上游 versionCode × 100 + fork 序號`。
+
+## 路線圖
+
+- `ROADMAP.md` 是本 repo 後續工作的單一真相源。完成或新增工作時，在同一個 commit 更新它：做完的列刪掉、新工作加進去。不要在其他文件另列待辦。
