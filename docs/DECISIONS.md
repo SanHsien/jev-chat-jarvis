@@ -1,5 +1,30 @@
 # Fork 決策紀錄 (DECISIONS.md)
 
+## 2026-10-30：上游 Android 觀察清單項目分診（登記不修結論與觸發條件）
+
+深掃報告指出上游 Android 程式碼的三項潛在缺陷與防禦不足處。經評估，本 fork 決定**暫不修**（維持上游行為，列入觀察清單），避免無端增加 [`docs/DIVERGENCE.md`](DIVERGENCE.md) 的分岔維護負擔；後續處理條件已同步記於 [`ROADMAP.md`](../ROADMAP.md) 中期規劃。
+
+1. **`JudgeClient.postDecisions` 對任何 4xx 都重送**
+   - **檔案與行號**：[`app/src/main/java/com/jev/probe/jev/JudgeClient.kt:73-90`](../app/src/main/java/com/jev/probe/jev/JudgeClient.kt)
+   - **問題描述**：若請求帶有 `background` 或 `history`，在遭遇任何 4xx（`e.status in 400..499`）時，原邏輯會嘗試以不帶背景與歷史的純淨 state 重送一次。此防禦性重試旨在避免後端不識別新欄位，但對 401（未授權／無效金鑰）、403、429（限流）或 404 等客戶端錯誤無差別重送，浪費網路往返且在金鑰失效或限流時無益。
+   - **結論**：**暫不修**（維持上游行為，列入觀察清單）。
+   - **理由**：一般一對一會話中 `background` 與 `history` 多為空，且實機正常配置下 401/429 罕見；修改上游持有檔會增加一列分岔登記。
+   - **重新考慮／觸發條件**：維護者明確指示修復，或實機實際遭遇金鑰錯誤／限流重複打擊時，改為僅對特定 4xx（如 400/422）重送，排除 401/403/429。
+
+2. **`HttpJson.post` 吞 `InterruptedException`**
+   - **檔案與行號**：[`app/src/main/java/com/jev/probe/jev/HttpJson.kt:77、97-100`](../app/src/main/java/com/jev/probe/jev/HttpJson.kt)
+   - **問題描述**：429/529 退避的 `Thread.sleep`（:77）位於 try 區塊內，其 `InterruptedException` 被 :97 的通用 `catch (e: Exception)` 吞掉、包裝成 `ApiException` 後清掉中斷旗標並繼續重試與退避，既未重新中斷執行緒（`Thread.currentThread().interrupt()`）亦未向上拋出，導致外部取消時執行緒無法即刻響應。catch 區塊內的退避（:96、:100）不受影響：那裡丟出的中斷例外會直接往外拋。
+   - **結論**：**暫不修**（維持上游行為，列入觀察清單）。
+   - **理由**：本 fork 已於 2026-10-25 在 `JevClient` 頂層實作 120 秒硬逾時（`HardTimeout.kt`）控制單輪總時長；重試退避 sleep 期間發生外部取消的機率極低。修改底層共用網路模組會產生分岔成本。
+   - **重新考慮／觸發條件**：維護者明確指示修復，或實機 UI 出現取消後執行緒無法及時中斷釋放時，在 catch 區塊恢復中斷旗標或直接拋出。
+
+3. **`ReplyClient.parseThree` 取第一個 `[` 到最後一個 `]`**
+   - **檔案與行號**：[`app/src/main/java/com/jev/probe/jev/ReplyClient.kt:99`](../app/src/main/java/com/jev/probe/jev/ReplyClient.kt)
+   - **問題描述**：候選回覆解析使用 `content.indexOf('[')` 與 `content.lastIndexOf(']')` 截取 JSON 陣列。若模型在前文包含方括號（如「好的[笑]：\n["1", "2", "3"]」），會導致截出的子字串非合法 JSON 陣列而解析失敗，退回逐行備援解析。
+   - **結論**：**暫不修**（維持上游行為，列入觀察清單）。
+   - **理由**：目前提示詞與支援之主流模型輸出格式穩定，少見前置表情符號方括號；且已有 `ReplyLineParser` 兜底機制。
+   - **重新考慮／觸發條件**：維護者明確指示修復，或實機遇到特定模型頻繁吐出前置方括號干擾候選解析時，比照 Windows 版 `draft.py` 改進括號配對與邊界定位邏輯。
+
 ## 2026-10-25：審查上游 v1.7，採用 #74 與 #71 的穩定性做法
 
 上游 v1.7（`45a0876..c57ecc1`，42 個 commit）逐項分診記在 [`UPSTREAM.md`](UPSTREAM.md) 2026-10-25 一節；`reviewed_through` 推進到 `c57ecc1`、`reviewed_release` 為 `v1.7`，水位 PR #78／issue #82。

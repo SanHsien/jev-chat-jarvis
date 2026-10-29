@@ -12,7 +12,6 @@ LINE（Android 與 Windows）的對話副駕 fork，上游是 `jev-chat/jev-chat
 | --- | --- | --- | --- | --- |
 | 實機驗收 `[未發佈]` 的 Android 改動，通過後發 1.4.12 | 截圖回呼與 OCR 改到背景執行緒、判斷／候選 120 秒硬逾時、`stream:false` 都只有編譯＋單元測試；發版前需有人在手機上跑過 | 在實機的 LINE 完成一輪「分析→填入」；斷網或 DNS 卡住時 120 秒內顯示逾時而非一直轉圈；通過後 `CHANGELOG.md` 的 `[未發佈]` 變成 `[1.4.12]`，`app/build.gradle.kts` 版號同步，release workflow 成功並出現 APK | 維護者 | `CHANGELOG.md:9-20`；`app/build.gradle.kts:32-33`；`REVIEW.md` 未驗證段 |
 | 決定半自動「換回覆對象後是否重跑」的語意並寫進 `docs/DECISIONS.md` | `chat["result"]` 在新訊息後不清空，已分析過的會話換對象仍會自動重跑；CHANGELOG 1.4.11 寫「該會話已經分析過」，意圖含糊 | `docs/DECISIONS.md` 有一節寫明語意（維持或改成只針對當前這則訊息）；若要改，補一項釘住該行為的 pytest，`pwsh -NoProfile -File tools\dev_check.ps1` 全綠 | 維護者 | `CHANGELOG.md:27`；深掃報告（2026-10-26）「刻意不修」 |
-| 把深掃觀察清單的上游 Android 問題登記進 `docs/DECISIONS.md`（`JudgeClient.postDecisions` 對任何 4xx 都重送、`HttpJson.post` 吞 `InterruptedException`、`ReplyClient.parseThree` 取第一個 `[` 到最後一個 `]`） | 這些問題目前只存在於一份報告；DECISIONS 沒有，下個接手者看不到，也不知道是「看過決定不修」 | `docs/DECISIONS.md` 新增一節，每項附檔案:行號與「修／不修」結論；`python tools/check_links.py` 無缺檔 | Claude Sonnet | `app/src/main/java/com/jev/probe/jev/JudgeClient.kt:73-90`；`HttpJson.kt:92-97`；`ReplyClient.kt:99` |
 
 ## 中期：等條件成立再做
 | 項目 | 觸發條件 | 驗收方式 | 建議執行者 | 證據 |
