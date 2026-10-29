@@ -44,10 +44,20 @@ SYSTEM = (
 
 
 def _clean(x: str) -> str:
-    """剝掉一條候選兩端的括號/引號/編號/逗號——模型偶爾一行給一個 ["…"]，或者整條帶引號。
+    """剝掉一條候選兩端的引號/編號/逗號——模型偶爾一行整條帶引號。
+    兩端只剝沒有配對的方括號，避免削壞候選內含或結尾的 [公司]、[微笑] 等標籤。
     末尾的句號也去掉（聊天裡很少有人用句號收尾）；？！～ 照留，那是語氣。"""
     x = re.sub(r"^\s*(?:\d+[.)、]|[-*])\s*", "", x.strip())
-    x = x.strip(" \t[]\"'“”‘’,，")
+    x = x.strip(" \t\"'“”‘’,，")
+    if x in ("[", "]"):
+        return ""
+    if x.startswith("[") and ("]" not in x or x.count("[") > x.count("]")):
+        x = x[1:]
+    if x.endswith("]") and x.count("]") > x.count("["):
+        x = x[:-1]
+    x = x.strip(" \t\"'“”‘’,，")
+    if x in ("[", "]"):
+        return ""
     x = re.sub(r"^(?:me|我)\s*[:：]\s*", "", x)  # 對話樣本是「me: xxx」格式，模型會照抄字首
     return x[:-1] if x.endswith("。") else x
 
@@ -224,6 +234,7 @@ if __name__ == "__main__":
     except JevError:
         pass
     assert _parse_candidates('["只有一條"]') == ["只有一條"]
+    assert _parse_candidates('["好的[公司]"]') == ["好的[公司]"]
     assert _parse_candidates('["好，明天下午"]\n["好嘞，明天聊"]\n["行，今晚弄"]') == ["好，明天下午", "好嘞，明天聊", "行，今晚弄"]
     assert _parse_candidates('1. ["甲"]\n2. "乙"\n3. 丙') == ["甲", "乙", "丙"]
     assert _parse_candidates('["a"], ["b"], ["c"]') == ["a", "b", "c"]

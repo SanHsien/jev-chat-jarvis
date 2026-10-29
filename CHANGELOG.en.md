@@ -11,6 +11,7 @@ repository's `CHANGELOG.md`.
 
 ### Fixed
 
+- Windows draft candidate parsing: only strip unpaired square brackets from ends, preserving labels like [公司] within or at the end of candidates while fixing the line-by-line fallback parser mistaking boundary "[" for a candidate when full JSON parsing fails.
 - Windows semi-automatic mode: while one conversation waits for analysis, a new message in another LINE conversation no longer displaces its 「Analyze」 or makes the button analyze the wrong chat; pending analyses are now tracked per conversation.
 - The upstream check listed PRs/issues from a single `gh` page, so once upstream outgrew it the oldest unreviewed items vanished while the report still said "triaged through #N". A full page that has not reached the watermark now reports "not checked".
 

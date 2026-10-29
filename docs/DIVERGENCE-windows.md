@@ -49,5 +49,5 @@ git diff 946d3d1 upstream-windows/main -- app core main.py requirements.txt jev.
 | `wingman/__main__.py` | 改呼叫 `find_chat_hwnd`；`fill_reply` 回傳 `fill()` 的結果；註解改為 LINE；半自動：新訊息只 `set_pending()`，`on_analyze()` 才分析，換回覆對象只在已分析過時重跑。 | 照收，保留半自動分支。 |
 | `wingman/app/overlay.py` | 只複製時提示按 `Ctrl+V`；移除公眾號橫幅；標題改「對話副駕」；起草預設說明改 OpenRouter；設定頁加〈關於與授權〉（依上游〈版權與許可〉）；半自動的「分析」按鈕、`set_pending()`／`clear_pending()` 與「對方發訊息時自動分析」開關。 | 照收，橫幅不收，保留〈關於與授權〉。 |
 | `wingman/app/update.py`、`wingman/app/settings.py` | 檢查更新查本 repo 的最新 Release（與 APK 同版號），不查上游；起草預設 `openrouter`；新增 `auto_analyze()`（預設關）。 | 保留指向本 repo。 |
-| `wingman/core/providers.py`、`engine.py`、`draft.py`、`llm.py` | 白名單以外的來源與其自測移除；起草預設 OpenRouter + `google/gemini-2.5-flash`；起草要求繁體中文（台灣用語）輸出。 | 白名單以外不收。 |
+| `wingman/core/providers.py`、`engine.py`、`draft.py`、`llm.py` | 白名單以外的來源與其自測移除；起草預設 OpenRouter + `google/gemini-2.5-flash`；起草要求繁體中文（台灣用語）輸出；`draft.py` 的 `_clean` 兩端只剝未配對方括號，保留候選內含或結尾的 `[公司]` 等括號標籤，維持逐行解析備援。 | 白名單以外不收；`_clean` 修正保留。 |
 | `tools/windows/wingman.spec`、`build.bat`、`requirements-windows.txt` | exe 名 `chat-wingman`；hiddenimports 改 `wingman.*`；加 `httpx[socks]`／收 `socksio`（上游 PR #15）；入口 `wingman/__main__.py`；不打包公眾號圖；註解改白名單。 | 照收。 |
