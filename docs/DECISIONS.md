@@ -1,5 +1,10 @@
 # Fork 決策紀錄 (DECISIONS.md)
 
+## 2026-11-05：Actions 已升級
+
+- `actions/setup-java` 已由 6.1.0 升級至 6.2.0，`github/codeql-action` 已由 4.39.1 升級至 4.39.3；`ci`、`codeql`、`release` workflow 已改釘對應版本的 commit SHA。
+- 移除三筆 Actions 暫緩，維持 `.github/dependency-deferrals.json` 的 `deferrals` 為空。
+
 ## 2026-10-30：上游 Android 觀察清單項目分診（登記不修結論與觸發條件）
 
 深掃報告指出上游 Android 程式碼的三項潛在缺陷與防禦不足處。經評估，本 fork 決定**暫不修**（維持上游行為，列入觀察清單），避免無端增加 [`docs/DIVERGENCE.md`](DIVERGENCE.md) 的分岔維護負擔；後續處理條件已同步記於 [`ROADMAP.md`](../ROADMAP.md) 中期規劃。
