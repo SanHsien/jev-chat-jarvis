@@ -1,5 +1,22 @@
 # Fork 決策紀錄 (DECISIONS.md)
 
+## 2026-11-08：半自動「換回覆對象後是否重跑」的語意定案（只針對當前訊息有效結果重跑）
+
+- **檔案與行號**：[`wingman/__main__.py:161-177,227-232`](../wingman/__main__.py)、[`wingman/app/overlay.py:936-938`](../wingman/app/overlay.py)、[`wingman/app/pending.py:35-54`](../wingman/app/pending.py)、[`tests/test_wingman_pending.py`](../tests/test_wingman_pending.py)
+- **問題描述**：
+  1. `CHANGELOG.md` 1.4.11 記載「半自動時換回覆對象不會自動重跑，除非該會話已經分析過」，但原先在收到新訊息時未清空 `chat["result"]`，導致歷史上曾經點過「分析」的會話在收到新訊息處於 pending 狀態時，若使用者變更回覆對象，會意外自動觸發模型分析，違背半自動模式省 token、不自動呼叫模型的初衷。
+  2. 收到新訊息（包含自己回覆）時清空 `chat["result"] = None`，亦會使 `Overlay` 透過 `result_of`／`show_cached` 恢復的快取結果在切換會話時變為空白；需定案此快取清理是否符合預期。
+  3. 自己回覆後變更回覆對象時，若只依據歷史是否有對方訊息與 `chat["result"] is None` 判斷，會導致「分析」按鈕與 pending 狀態錯誤復現。
+- **結論**：
+  1. 定案為**只針對當前這則訊息有效結果重跑**：收到新訊息時將 `chat["result"]` 設為 `None`；半自動模式下只有當前訊息已分析產生結果且尚未收到任何新訊息時，換對象才自動重跑。
+  2. **`result_of`／`show_cached` 快取清空為預期行為**：新訊息（對方發言或我方回覆）代表前一輪對話週期結束，舊候選建議已失效；切換會話時不應在畫面上殘留已過時的建議，顯示對應狀態（等待對方新訊息／等待分析）符合半自動生命週期。
+  3. **變更對象僅在真正 pending 時更新提示**：`on_target_change` 改為僅在 `ov.is_pending(title)` 時更新待分析對象提示，避免自己回覆後（已非 pending）變更對象錯誤重新叫出「分析」按鈕。
+- **理由**：
+  1. 新訊息進來時，舊分析結果已失效，此時換回覆對象僅代表挑選待分析對象，應維持 pending 顯示、不主動呼叫模型。
+  2. 只有當使用者已按下「分析」產生有效候選結果、且尚未收到任何新訊息時，使用者變更對象才代表希望重新產生對應新對象的候選回覆，此時才以新對象自動重跑。
+  3. 新增 `should_rerun_on_target_change` 純函式與釘住行為之單元測試，並由單元測試釘住 `drain()` 清空 `chat["result"]`、防止重跑與避免 pending 復現之先紅後綠驗證。
+- **重新考慮／觸發條件**：維護者明確要求調整半自動流程互動行為時。
+
 ## 2026-11-05：Actions 已升級
 
 - `actions/setup-java` 已由 6.1.0 升級至 6.2.0，`github/codeql-action` 已由 4.39.1 升級至 4.39.3；`ci`、`codeql`、`release` workflow 已改釘對應版本的 commit SHA。

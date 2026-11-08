@@ -933,6 +933,10 @@ class Overlay:
         if self._pending.clear(title) and title == self.current_chat():
             self.analyzeButton.hide()
 
+    def is_pending(self, title):
+        """這個會話是否正在等待使用者按「分析」。"""
+        return self._pending.is_pending(title)
+
     def _analyze_clicked(self):
         self.analyzeButton.hide()
         title = self.current_chat()  # 按鈕只對正看著的會話露出，分析的就是它

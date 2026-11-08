@@ -1,17 +1,16 @@
 # 路線圖
 
 > 本 repo 後續工作的單一真相源。做完一項，就在同一個 commit 刪掉那一列；新工作只加在這裡。
-> 現況段的數字是 2026-10-29 依 `main` `fcd34e656731` 查的快照，開工前先重查 GitHub。
+> 現況段的數字是 2026-11-08 依 `main` `26761c9` 查的快照，開工前先重查 GitHub。
 
 ## 現況
 
-LINE（Android 與 Windows）的對話副駕 fork，上游是 `jev-chat/jev-chat-jarvis`；2026-10-29 無 open issue／PR、Dependabot 與 Code scanning 告警皆 0，`main` 上 ci、CodeQL、windows、Upstream check 最近一次皆 success（2026-10-29 `gh` 查詢）。上游已審到 v1.7（`tools/upstream_baseline.json`）；`CHANGELOG.md` 的 `[未發佈]` 累積了 `[1.4.11]`（2026-09-26）之後的修正與 120 秒硬逾時，尚未發版；Android 截圖／OCR 執行緒與逾時只有編譯加單元測試，沒有實機驗證（`REVIEW.md`「未驗證」段）。
+LINE（Android 與 Windows）的對話副駕 fork，上游是 `jev-chat/jev-chat-jarvis`；2026-11-08 無 open issue／PR、Dependabot 與 Code scanning 告警皆 0。上游已審到 v1.7（`tools/upstream_baseline.json`）；Windows 版半自動換對象重跑語意已於 2026-11-08 定案並實作；`CHANGELOG.md` 的 `[未發佈]` 累積了 `[1.4.11]`（2026-09-26）之後的修正與 120 秒硬逾時，尚未發版；Android 截圖／OCR 執行緒與逾時只有編譯加單元測試，沒有實機驗證（`REVIEW.md` 未驗證段）。
 
 ## 近期：可以直接動手
 | 項目 | 為什麼 | 驗收方式 | 建議執行者 | 證據 |
 | --- | --- | --- | --- | --- |
 | 實機驗收 `[未發佈]` 的 Android 改動，通過後發 1.4.12 | 截圖回呼與 OCR 改到背景執行緒、判斷／候選 120 秒硬逾時、`stream:false` 都只有編譯＋單元測試；發版前需有人在手機上跑過 | 在實機的 LINE 完成一輪「分析→填入」；斷網或 DNS 卡住時 120 秒內顯示逾時而非一直轉圈；通過後 `CHANGELOG.md` 的 `[未發佈]` 變成 `[1.4.12]`，`app/build.gradle.kts` 版號同步，release workflow 成功並出現 APK | 維護者 | `CHANGELOG.md:9-20`；`app/build.gradle.kts:32-33`；`REVIEW.md` 未驗證段 |
-| 決定半自動「換回覆對象後是否重跑」的語意並寫進 `docs/DECISIONS.md` | `chat["result"]` 在新訊息後不清空，已分析過的會話換對象仍會自動重跑；CHANGELOG 1.4.11 寫「該會話已經分析過」，意圖含糊 | `docs/DECISIONS.md` 有一節寫明語意（維持或改成只針對當前這則訊息）；若要改，補一項釘住該行為的 pytest，`pwsh -NoProfile -File tools\dev_check.ps1` 全綠 | 維護者 | `CHANGELOG.md:27`；深掃報告（2026-10-26）「刻意不修」 |
 
 ## 中期：等條件成立再做
 | 項目 | 觸發條件 | 驗收方式 | 建議執行者 | 證據 |

@@ -30,3 +30,26 @@ class PendingAnalysis:
             self._titles.discard(title)
             return True
         return False
+
+
+def should_rerun_on_target_change(
+    *,
+    auto_analyze: bool,
+    has_her_message: bool,
+    has_active_result: bool,
+) -> bool:
+    """換回覆對象時是否應立即重新觸發模型分析。
+
+    - 若未曾有對方的訊息：永遠不跑 (False)。
+    - 若開啟全自動模式 (auto_analyze=True)：只要有對方訊息，換對象即重跑 (True)。
+    - 若處於半自動模式 (auto_analyze=False)：
+      只有在當前訊息「已分析過且結果仍有效」(has_active_result=True) 時才自動重跑；
+      若尚未分析過、或有新訊息進來導致舊結果已作廢 (has_active_result=False)，
+      則不重跑 (False)，僅更新待分析對象並維持 pending 等待使用者按「分析」。
+    """
+    if not has_her_message:
+        return False
+    if auto_analyze:
+        return True
+    return has_active_result
+

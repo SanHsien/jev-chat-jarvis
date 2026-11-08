@@ -17,6 +17,7 @@ from wingman.app import settings, update, worker
 from wingman.app.capture import find_chat_hwnd
 from wingman.app.fill import fill
 from wingman.app.overlay import Overlay
+from wingman.app.pending import should_rerun_on_target_change
 from wingman.app.version import VERSION
 from wingman.core.engine import analyze
 
@@ -28,6 +29,12 @@ chats = {}
 state = {"area": None, "busy": False, "rerun": None, "hwnd": None, "chat": ""}
 results = queue.Queue()
 update_result = queue.Queue()  # 獨立小佇列，別跟 results 的 (kind, r, title, revision) 形狀攪在一起
+q = None
+capture_on = None
+debug_on = None
+ov = None
+child = None
+dbg = None
 
 
 def chat_of(title):
@@ -153,14 +160,18 @@ def on_analyze(title):
 
 def on_target_change(title, name):
     """使用者挑了回覆對象：記下來，這個會話裡有對方的話就照新對象重跑一次。
-    Fork：半自動時只有已經分析過（有結果）才重跑，否則只更新待分析的對象。"""
+    Fork：半自動時只有當前結果仍有效才重跑，否則只更新待分析的對象。"""
     chat = chat_of(title)
     chat["target"] = name
     msgs = list(chat["history"])
-    if not any(m[0] == "her" for m in msgs):
-        return
-    if not settings.auto_analyze() and chat["result"] is None:
-        ov.set_pending(title, target_of(title) or title)
+    has_her = any(m[0] == "her" for m in msgs)
+    if not should_rerun_on_target_change(
+        auto_analyze=settings.auto_analyze(),
+        has_her_message=has_her,
+        has_active_result=chat["result"] is not None,
+    ):
+        if ov is not None and hasattr(ov, "is_pending") and ov.is_pending(title):
+            ov.set_pending(title, target_of(title) or title)
         return
     if state["busy"]:
         state["rerun"] = (title, msgs)
@@ -217,6 +228,7 @@ def drain():
         state["area"] = area
         chat = chat_of(title)
         chat["rev"] += 1  # 這個會話有新訊息了，它在跑的分析作廢
+        chat["result"] = None  # 新訊息進來，舊分析結果作廢；半自動下換對象不重跑
         if title == ov.current_chat():  # 看的是別的會話就別把人家的候選劃掉
             ov.invalidate_replies()
         for who, name, text in new:
