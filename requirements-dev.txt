@@ -1,4 +1,4 @@
 # Fork maintenance tooling only (tools/*.py, tests/). The Android app has no Python
 # dependencies; tools/jev/ uses the standard library only.
 pytest==9.2.0
-ruff==0.17.3
+ruff==0.17.4
