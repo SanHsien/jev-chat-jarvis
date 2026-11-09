@@ -167,6 +167,25 @@ python tools/check_upstream_updates.py
 |---|---|---|---|---|
 | 64 | merged | 綁定來源會話，阻止過期分析結果與跨會話填入（+502／−126，新增 `ConversationSession`、`GuardedInputWriter` 與測試） | 暫緩 | 修的是上游 issue #61，本 fork 已在 1.4.5 以 run id 綁定自行修正（結果只顯示在原對話，填入只作用於原對話）；上游版本另在寫入輸入框前再驗證目標節點，較嚴格，但與本 fork 大改過的 `ChatCaptureService`／`OverlayController` 衝突面大。**回來重看**：上游發出含此修正的 release（`v1.5` 等）時，評估以上游的 `GuardedInputWriter` 取代本 fork 的做法。 |
 
+### 2026-11-09（水位：PR #85、issue #82；`reviewed_through` 仍是 v1.7 `c57ecc1`）
+
+Upstream check 2026-11-09 轉紅（run 42607162934），原因只有 3 個新 PR（#83、#84、#85）；issue 沒有高於 #82 的新項目。上游最新的 release tag 仍是 `v1.7`（`git ls-remote --tags` 實測，海外版另有 `global-v0.1.0`，不在追蹤範圍），沒有新 release，`main` tip 仍是 `bd3fe42`，`c57ecc1..bd3fe42` 仍是 18 個 commit（`git rev-list --count` 實測），與 2026-10-25 一節「未隨 release 抵達的 `main` 變動」是同一批，**沒有新 commit**，維持「下一個 release 再審」。
+
+#### 新 Pull requests
+
+| # | 狀態 | 內容 | 結論 | 證據／回來重看的條件 |
+|---|---|---|---|---|
+| 83 | open | 日文 README（`.github/README.ja.md` +148，另三個語言 README 各 +1／−1，共 4 檔 +151／−3） | 不採用 | 只動上游 `.github/` 下的 README；本 fork 自有中英 README，路徑也不在本 fork 結構內。**回來重看**：本 fork 要出日文 README 時，另寫，不抄上游。 |
+| 84 | open | 通用幾何適配器 `GenericAdapter`（`pkg = "*"`），讓任何有左右氣泡的聊天 App 都有懸浮窗（`cn/` 下 2 檔 +277／−28，作者自述「未在真機驗證」） | 不採用（暫緩到隨 release 抵達） | 見下方說明。**回來重看**：它合併並隨新 release 抵達，**且**維護者要把支援範圍擴到 LINE、X 以外時。 |
+| 85 | closed 未合併 | 英文 README 的接口預設順序（`cn/README.en.md` +2／−2） | 不適用 | 改的是上游英文 README 的 Bocha Jev／OpenRouter 順序；本 fork 接口預設白名單另定（2026-09-25），README 自寫。上游已關閉未合併。 |
+
+#### #84 不採用的理由
+
+1. **與已定案的邊界相反。** 本 fork 的 `ChatCaptureService.maybeCapture` 明定沒有適配器的 App 不自動處理，唯一入口是懸浮球選單的「截圖識別一次」；範圍是 LINE 與 X。#84 的動機正是讓微信、Soul、探探、陌陌等「任何其他 IM」自動出現懸浮窗並讀取畫面，等於把範圍從兩個 App 改成所有 App，這是產品範圍決定，不是移植一個修正。
+2. **微信防線不因它失效，但不該靠它撐。** 本 fork 在適配器查表之前先檢查 `BLOCKED_PKGS`（`com.tencent.mm`，上游使用者回報 #42／#46／#47／#52／#59 支撐），所以 #84 的 fallback 到不了微信；然而 #84 自述的主要受益 App 就是微信，採用後防線只剩單點，違反硬約束 8 的精神（放寬前先說明風險並取得同意）。
+3. **未驗證。** 閾值（頭像欄 0.22／0.78 W 等）是從 QQ、WhatsApp 錄影推估，作者自己寫明沒在真機量過、群組聊天會把暱稱當成對方訊息；本機 Windows 閘門也驗不了 Android 行為。
+4. **衝突面大。** 要改本 fork 差異很大的 `ChatCaptureService`：上游改的是 `targetFor`／`confirmLeave` 兩處，本 fork 沒有這兩個函式，對應的查表點是 `maybeCapture`（`ChatCaptureService.kt:202`）與截圖回呼裡重新量測的地方（`:439`）；上游路徑是 `cn/app/...`，須先做路徑對映。
+
 ### 2026-10-25（水位：PR #78、issue #82；審查到 v1.7 `c57ecc1`，分支 10 個）
 
 上游 2026-10-05 發佈 v1.7（`v1.5`、`v1.6` 併入 v1.7，沒有獨立 tag）。`45a0876..c57ecc1` 共 42 個 commit，逐項結論如下；`c57ecc1` 之後到 `bd3fe42` 的 18 個 `main` commit 是 README、官網與倉庫改版，**未隨 release 抵達**，下一個 release 再審。

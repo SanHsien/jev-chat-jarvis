@@ -1,5 +1,14 @@
 # Fork 決策紀錄 (DECISIONS.md)
 
+## 2026-11-09：審查上游 PR #83–#85（無新 release、無新 commit）
+
+Upstream check 轉紅的原因是 3 個新 PR；上游仍無 `v1.7` 之後的 release，`main` tip 仍是 `bd3fe42`（與 2026-10-25 登記的 18 個未隨 release 抵達的 commit 同一批），`reviewed_through`／`reviewed_release` 不動，`reviewed_pr_through` 由 78 推進到 85，`reviewed_date` 為 2026-11-09，issue 水位 #82 不變。逐項證據見 [`UPSTREAM.md`](UPSTREAM.md) 2026-11-09 一節。
+
+- **不採用**：#83（日文 README，上游文件）、#85（英文 README 接口順序，已關閉未合併）。
+- **不採用 #84**（通用幾何適配器，讓任何 App 自動出現懸浮窗）：它把範圍從 LINE＋X 擴大到所有 App，與「沒有適配器的 App 只能手動截圖識別」的既有設計相反，是產品範圍決定；且作者自述未實機驗證、群組暱稱會被當成訊息；微信雖仍被 `BLOCKED_PKGS` 擋在適配器查表之前，但採用後防線不應變成單點。
+- **重新考慮／觸發條件**：#84 合併並隨新 release 抵達，且維護者要把支援範圍擴到 LINE、X 以外時。
+- **未做**：沒有程式碼變動，沒有 `DIVERGENCE.md` 新列；`c57ecc1` 之後那 18 個 `main` commit 與 `app/`→`cn/app/` 路徑對映仍留給下一個 release 審。
+
 ## 2026-11-08：半自動「換回覆對象後是否重跑」的語意定案（只針對當前訊息有效結果重跑）
 
 - **檔案與行號**：[`wingman/__main__.py:161-177,227-232`](../wingman/__main__.py)、[`wingman/app/overlay.py:936-938`](../wingman/app/overlay.py)、[`wingman/app/pending.py:35-54`](../wingman/app/pending.py)、[`tests/test_wingman_pending.py`](../tests/test_wingman_pending.py)
