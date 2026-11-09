@@ -20,3 +20,15 @@ def test_importing_capture_without_windll_does_not_raise(monkeypatch) -> None:
 
     assert hasattr(module, "find_chat_hwnd")
     monkeypatch.delitem(sys.modules, "wingman.app.capture", raising=False)
+
+
+def test_importing_fill_on_non_windows_does_not_raise(monkeypatch) -> None:
+    # fill.py 曾在模組層級取 ctypes.windll 並設定 argtypes，Linux CI 一匯入就炸。
+    monkeypatch.delattr(ctypes, "windll", raising=False)
+    monkeypatch.setattr(sys, "platform", "linux")
+    monkeypatch.delitem(sys.modules, "wingman.app.fill", raising=False)
+
+    module = importlib.import_module("wingman.app.fill")
+
+    assert hasattr(module, "set_clipboard")
+    monkeypatch.delitem(sys.modules, "wingman.app.fill", raising=False)
