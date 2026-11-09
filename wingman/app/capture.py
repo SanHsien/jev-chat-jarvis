@@ -6,7 +6,11 @@ import time
 
 import numpy as np
 
-u32 = ctypes.windll.user32
+
+
+def _user32():
+    """只在真的要呼叫 Win32 時才取 windll；非 Windows 平台匯入本模組不可丟例外。"""
+    return ctypes.windll.user32
 
 # Fork（SanHsien）：LINE 電腦版的程序名。只認它，別的聊天軟體一律不碰。
 CHAT_EXES = ("line.exe",)
@@ -16,6 +20,7 @@ def find_chat_hwnd():
     """列舉可見頂層視窗，按程序名 LINE.exe 挑主視窗（標題「LINE」），沒有就取第一個。
     同程序還可能有獨立聊天窗和看圖窗，面積可能更大，所以不能按面積挑。
     Fork（SanHsien）：只認 LINE，不認任何其他聊天軟體的程序。"""
+    u32 = _user32()
     k32 = ctypes.windll.kernel32
     found = []
 
@@ -49,6 +54,7 @@ def find_chat_hwnd():
 def unminimize(hwnd):
     """Windows 不渲染最小化的視窗，什麼截圖法都拿不到畫面。發現被最小化就無啟用還原，再壓到所有視窗最底下——
     看著跟收起來一樣，但 DWM 繼續畫。不搶焦點、不動大小位置。返回是否動了手。"""
+    u32 = _user32()
     if not u32.IsIconic(hwnd):
         return False
     u32.ShowWindow(hwnd, 4)  # SW_SHOWNOACTIVATE
