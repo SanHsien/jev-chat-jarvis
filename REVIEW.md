@@ -1,59 +1,44 @@
 # 倉庫審查（Windows-first）
 
-- 審查日期：2026-09-24
-- 審查起點：`4608acf`（fork 維護面落地後）
-- 上游 `reviewed_through`：`a3026e2cbb4b576401358b1f7b51566f5ab6363d`（`v1.4` + 7 個文件 commit）
+- 審查日期：2026-11-20（增量審查 `c84c250..e612f0e`，50 個檔案：Android app、`wingman/`、workflows、`tools/check_upstream_updates.py`、tests）
 - 狀態：可當作 LINE／Vercel 的維護線使用。**不是**產品安全審計通過證明。本輪**不回貢**。
+- 只保留最新一輪；每項標修復 commit 與日期，沒修的寫原因。
 
-## 結論
+## confirmed
 
-維護面已補齊（上游查驗、分岔登記、依賴新鮮度、CodeQL、Windows gate、Android 建置）。產品改動：LINE 支援（本 fork 原創）、移除微信與飛書、
-新安裝預設 Vercel、AGP 9／Gradle 9 升級、版本號 `1.4.0`。兩者都登記在 [`docs/DIVERGENCE.md`](docs/DIVERGENCE.md)。
-LINE 自動模式要等真機 dump 才算完成；在那之前 LINE 走手動 OCR。
+| # | 問題 | 狀態 |
+|---|---|---|
+| C1 | 自動分析模式下，`showLoading()` 展開面板時 `toggle()` 觸發 `onPanelOpened` → `showPending()` 把「分析中…」換成可再按的「分析」，按下會對同一快照再跑一次付費分析（`OverlayController.kt` toggle／showLoading、`ChatCaptureService.kt` onPanelOpened）。 | 已修 `67412b7`（2026-11-20）：`analyzing` 為真時 `onPanelOpened` 直接返回。**未本機編譯、未真機驗證**（本機無 Android SDK），以 CI `Android build` 為準。 |
+| C2 | wingman 半自動：A 分析中切到 B 按「分析」，`tick()` 先處理 rerun 再存結果，A 仍有效的結果被丟、A 的「分析」按鈕已被 `take()` 用掉回不來。 | 已修 `6b480a8`（2026-11-20）：排隊的是別的會話且 `rev` 相符時先存結果再跑排隊的；同會話 rerun 維持上游丟棄行為。測試 `test_finished_result_is_kept_when_analyze_is_queued_for_another_chat`（修前失敗、修後通過）、`test_stale_result_is_still_dropped_when_rerun_is_queued`。Qt 介面未實跑。 |
+| C3 | `tests/test_wingman_pending.py` 讀開發者本機 `wingman/config.json`，`auto_analyze: true` 時 3 個測試失敗。 | 已修 `d06ec43`（2026-11-20）：`wingman_env` fixture 把 `settings._CONFIG` 指到 tmp。在放了 `{"auto_analyze": true}` 的副本上跑 wingman 測試：19 passed。 |
 
-## 本輪實證
+## needs_validation
 
-```text
-git remote -v
-origin    https://github.com/SanHsien/jev-chat-jarvis
-upstream  https://github.com/jev-chat/jev-chat-jarvis.git
+| # | 問題 | 狀態 |
+|---|---|---|
+| N1 | 同組測試在 drain 時可能呼叫真的 `start_analyze`（真網路、真金鑰）；直接改模組屬性不還原；numpy 被 Mock 換掉影響後續測試。 | 已修 `d06ec43`（2026-11-20）：`start_analyze` 在任何呼叫前換成紀錄器、`engine.analyze` 換成直接拋錯；全部改 monkeypatch 自動還原；numpy 只在沒安裝時才 stub；在 stub 下首次匯入的 `wingman.*` 模組測後移除。 |
+| N2 | 使用者已回覆後點懸浮球，仍顯示「新訊息 · 分析對象」（`onPanelOpened` 沒看 `latestFrom`）。 | 未修：UX 文案問題、影響低，需真機確認實際畫面再決定改法。 |
 
-GitHub Actions @ 4608acf
-ci       success   (Fork tooling / Windows gate -Quick -SkipUpstream / Android assembleDebug)
-CodeQL   success   (java-kotlin manual build / python / actions)
+## hardening
 
-GitHub Actions @ 0502489
-Upstream check          success
-Dependency freshness    success
+| # | 問題 | 狀態 |
+|---|---|---|
+| H1 | `HardTimeout.kt` 用無上限 `newCachedThreadPool`，DNS 卡住的執行緒會累積。 | 未修：改 pool 上限要決定滿載時的行為，且無法本機編譯測試，不算瑣碎。 |
+| H2 | 硬上限 120s 短於 `HttpJson` 單次呼叫重試預算（約 168s），`draftAndRank` 第二次重試幾乎用不到。 | 未修：設計取捨，待在註解或 `docs/DECISIONS.md` 寫明。 |
+| H3 | `ScreenCapture.kt` 逾時與 onSuccess 在 3s 邊界互搶，搶輸的 bitmap 未 recycle；`windowBounds` 跨執行緒無 volatile。 | 未修：實際風險低，且無法本機編譯／真機驗證。 |
+| H4 | `gradle-wrapper.properties` 沒有 `distributionSha256Sum`（既有，非本輪引入）。 | 未修：需從官方取得並核對 checksum，改的是上游檔（要登記分岔），留待升 Gradle 時一併處理。 |
 
-本機（Linux 容器）
-pytest -q                          57 passed
-ruff check . / ruff format --check All checks passed / 8 files already formatted
-tools/check_divergence.py          7 upstream file(s) diverge; 7 registered. OK
-tools/check_links.py               18 份維護文件，0 份有缺檔
-git grep sk-or-                    無命中
-```
+## 本輪已確認沒問題
 
-## 已修正
-
-| 問題 | 修正 |
-|---|---|
-| 上游 tag 是兩段式（`v1.4`），範本正則只吃三段 → 檢查器會回報「沒有 release」 | `check_upstream_updates.py` 放寬為 `major.minor[.patch]`，並加測試 |
-| Linux runner 建置失敗：`gradlew` 沒有執行權限；`app/build.gradle.kts` 預設簽章路徑 `H:/…` 在 Linux 被 Gradle 當成 URL | CI 改用 `bash ./gradlew`，並設 `JEV_KEYSTORE_PROPS` 指向不存在的檔案（不改上游檔） |
-| 判斷接口選 Vercel 時，回覆／視覺繼承的 Vercel 金鑰會被送到 OpenRouter | 回覆／視覺各加 Vercel 預設；新安裝三路一次性設為 Vercel |
-
-| Dependabot #1（AGP 9）與 #2（Gradle 9）各自必紅 | 合併驗證、移除 `kotlin.android` 外掛改用 AGP 內建 Kotlin，`39adee3` CI 全綠；gradle 改單一群組 |
-
-| `check_divergence.py` 在 git 預設開啟 rename 偵測時，被 `git mv` 的上游檔案會漏登記 | 改用 `--no-renames`，加測試並做突變驗證 |
+- 5 個新釘選的 action SHA 與 tag 一致；workflow 無 `pull_request_target`，`persist-credentials: false` 不變。
+- `gradle-wrapper.jar` sha256 與官方 9.9.1 wrapper 相同。
+- `MlKitOcr` 非同步後的 bitmap 生命週期正確；`wingman/app/capture.py`、`fill.py` 延遲取 windll 後無殘留模組層參照。
 
 ## 未驗證（自驗缺口）
 
-- 本機沒有 Android SDK（下載被網路政策擋），Kotlin 改動只由 CI 的 `assembleDebug` 驗證編譯，**沒有在真機跑過**。
-- Vercel 三個模型 ID 已由 `tools/check_vercel_models.py` 確認在 gateway 目錄內（`Vercel models` workflow，每週重查）；
-  但沒有帶金鑰實際呼叫過，仍需在設定頁按「測試」確認。
+- 本機沒有 Android SDK，Kotlin 改動（含 C1 修正、`HardTimeoutTest`）只由 CI 的 `assembleDebug` 驗證編譯，**沒有在真機跑過**。
+- wingman 的 Qt 介面（按鈕顯示／隱藏時機）沒有實際跑 GUI。
+- `tools/check_upstream_updates.py`（+985 行）只粗看 None／「未檢查」處理，沒有逐行審；`gradlew.bat` 未與官方 9.9.1 逐字比對。
+- Vercel 三個模型 ID 由 `tools/check_vercel_models.py` 每週確認在 gateway 目錄內，但沒有帶金鑰實際呼叫過；手機端三張卡的「測試」尚待維護者確認。
 - `seedVercelDefaultIfFresh()` 只靠程式閱讀確認「已有設定不受影響」，沒有做升級安裝測試。
-- `LineAdapter` 以 2026-09-25 真機 dump 驗證（1:1、繁中介面），`LineExtractorTest` 在 CI 通過；群組聊天、其他語言介面、實機填入未驗證。
-- 上游 PR／issue 已全數分診到 #55（見 `docs/UPSTREAM.md`）。
-- 升級到 AGP 9.4.1／Gradle 9.7.1、移除微信與飛書、無障礙服務改名後的 APK 沒有在真機跑過（改名後需重新開啟無障礙）。
-- 正式簽章已啟用：維護者本機以 `tools/new_signing_key.ps1` 產生金鑰並設好 `JEV_*` secrets，v1.4.3 為第一個正式簽章版（從 debug 版換裝須先解除安裝）。
-- Vercel AI Gateway 金鑰已由維護者建立（Hobby 帳號，`typesafe-ai/jev` 在免費額度內）；手機端三張卡的「測試」尚待維護者確認。
+- `LineAdapter` 以 2026-09-25 真機 dump 驗證（1:1、繁中介面）；群組聊天、其他語言介面、實機填入未驗證。
