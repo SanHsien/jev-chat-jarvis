@@ -267,6 +267,13 @@ def tick():
             state["busy"] = False
             if state["rerun"]:  # 分析期間又來了新訊息，接著跑最新的
                 (t, msgs), state["rerun"] = state["rerun"], None
+                # Fork：排隊的是別的會話（使用者切過去按了「分析」）時，這份結果仍有效就先存起來，
+                # 否則 token 白花，而且這個會話的「分析」按鈕已經被用掉、回不來
+                if (kind == "ok" and t != title
+                        and revision == chat_of(title)["rev"]):
+                    chat_of(title)["result"] = r
+                    if title == ov.current_chat():
+                        ov.show(r)
                 start_analyze(t, msgs)
                 continue
             if revision != chat_of(title)["rev"]:  # 這個會話後來又說話了，這份結果過期了

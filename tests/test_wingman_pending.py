@@ -240,3 +240,44 @@ def test_on_target_change_when_pending_updates_target(wingman_env) -> None:
     mock_ov.set_pending.assert_called_with("chat1", "Bob")
     assert start_mock.call_count == 0
     assert chat["target"] == "Bob"
+
+
+def test_finished_result_is_kept_when_analyze_is_queued_for_another_chat(wingman_env) -> None:
+    # C2：A 分析中，使用者切到 B 按「分析」（排進 rerun）。A 的結果回來時 rev 仍相符，
+    # 必須存進 A 的 chat["result"]（token 已經花了；A 的「分析」按鈕已被 take() 用掉，
+    # 不存就再也看不到），然後才接著跑 B。
+    wm, mock_ov, start_mock = wingman_env
+    wm.chat_of("A")["history"].append(("her", "hi from A", None))
+    wm.chat_of("B")["history"].append(("her", "hi from B", None))
+
+    mock_ov.current_chat.return_value = "A"
+    wm.on_analyze("A")
+    mock_ov.current_chat.return_value = "B"
+    wm.on_analyze("B")
+    assert [c.args[0] for c in start_mock.call_args_list] == ["A"]
+
+    result_a = {"candidates": ["for A"]}
+    wm.results.put(("ok", result_a, "A", wm.chat_of("A")["rev"]))
+    wm.tick()
+
+    assert wm.chat_of("A")["result"] == result_a
+    assert [c.args[0] for c in start_mock.call_args_list] == ["A", "B"]
+    assert wm.state["rerun"] is None
+    mock_ov.show.assert_not_called()  # 正看著 B，A 的結果只存不貼
+
+
+def test_stale_result_is_still_dropped_when_rerun_is_queued(wingman_env) -> None:
+    # 同一會話分析期間又來新訊息（rev 已變）：舊結果作廢不存，直接跑最新的。
+    wm, mock_ov, start_mock = wingman_env
+    wm.chat_of("A")["history"].append(("her", "first", None))
+    mock_ov.current_chat.return_value = "A"
+    wm.on_analyze("A")
+    old_rev = wm.chat_of("A")["rev"]
+    wm.chat_of("A")["rev"] += 1
+    wm.on_analyze("A")
+
+    wm.results.put(("ok", {"candidates": ["stale"]}, "A", old_rev))
+    wm.tick()
+
+    assert wm.chat_of("A")["result"] is None
+    assert [c.args[0] for c in start_mock.call_args_list] == ["A", "A"]
