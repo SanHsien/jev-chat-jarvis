@@ -110,7 +110,11 @@ class ChatCaptureService : AccessibilityService() {
         // Semi-automatic: the bubble tap opens the panel, and only then do we name
         // the person the analysis would be about. No other message → leave the
         // plain 「分析當前對話」 button that showIdle put there.
-        overlay?.onPanelOpened = {
+        overlay?.onPanelOpened = onPanelOpened@{
+            // A run is in flight (showLoading itself expands the panel in auto mode):
+            // keep 「分析中…」 on screen. Offering 「分析」 here would queue a second,
+            // paid analysis of the same snapshot.
+            if (analyzing) return@onPanelOpened
             currentSnapshot?.let { s ->
                 val last = s.messages.lastOrNull { it.side == "other" }
                 if (last != null) {
