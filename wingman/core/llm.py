@@ -14,8 +14,15 @@ try:  # 當模組匯入 / 當指令碼直接跑 都能用
 except ImportError:
     from jev_client import JevError, _fail
 
-# Anthropic 開思考模式時的預算：起草三句話用不上更多；max_tokens 必須比它大，下面會兜住
+import re
+
+# 舊款 Claude（Haiku 4.5、Sonnet 4.5 等）開思考模式時的預算：起草三句話用不上更多；max_tokens 必須比它大，下面會兜住
 _THINK_BUDGET = 2048
+# 收 adaptive thinking 的 Claude：Opus／Sonnet 4.6、Opus 4.7／4.8 與所有 5.x。其中 Opus 4.7+ 與 5.x 收到
+# 手動 budget_tokens 會回 400。舊款不收 adaptive，維持 budget。
+_ADAPTIVE_MODEL = re.compile(r"claude-(?:(?:opus|sonnet)-4-6|opus-4-[78]|(?:opus|sonnet|haiku|fable|mythos)-5)")
+# 現行 Claude 預設會思考（Opus 5.5 一律開），思考也算進 max_tokens；起草的 400 會被思考吃掉，給一個下限
+_ANTHROPIC_MIN_MAX_TOKENS = 4096
 
 
 def _turns(user_turns: list[str], assistant: str = "assistant") -> list[dict]:
@@ -67,17 +74,23 @@ def _anthropic(base_url, api_key, model, system, user_turns, temperature, max_to
                thinking, timeout) -> str:
     import anthropic
 
+    # temperature 一律不送：呼叫方傳的 1.2 超出 Anthropic 的 0–1 範圍，現行模型（Opus 4.7+、5.x）
+    # 收到非預設值也回 400；不送就是預設 1.0，也正是舊款開思考時唯一接受的值。
+    del temperature
     extra = {}
     if thinking:
-        extra["thinking"] = {"type": "enabled", "budget_tokens": _THINK_BUDGET}
-        temperature = 1.0  # 開了思考，Anthropic 只收 temperature=1
-        max_tokens = max(max_tokens, _THINK_BUDGET + 1024)  # max_tokens 得裝得下思考 + 正文
+        if _ADAPTIVE_MODEL.search(model or ""):
+            extra["thinking"] = {"type": "adaptive"}
+        else:
+            extra["thinking"] = {"type": "enabled", "budget_tokens": _THINK_BUDGET}
+            max_tokens = max(max_tokens, _THINK_BUDGET + 1024)  # max_tokens 得裝得下思考 + 正文
+    max_tokens = max(max_tokens, _ANTHROPIC_MIN_MAX_TOKENS)
     try:
         client = anthropic.Anthropic(base_url=base_url or None, api_key=api_key,
                                      timeout=timeout, max_retries=2)
         message = client.messages.create(model=model, system=system,
                                          messages=_turns(user_turns), max_tokens=max_tokens,
-                                         temperature=temperature, **extra)
+                                         **extra)
     except Exception as exc:
         _fail(exc, "起草")
     # 開了思考的話前面還有 thinking 塊，只取文字塊
