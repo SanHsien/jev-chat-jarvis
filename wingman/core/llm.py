@@ -223,16 +223,21 @@ if __name__ == "__main__":
         "system", "user", "assistant", "user"]
     assert seen["openai.init"]["base_url"] is None  # 空 base_url = 用 SDK 預設地址
 
-    # Anthropic：system 單獨傳，思考是協議自帶引數，開了必須 temperature=1 且 max_tokens 裝得下預算
+    # Anthropic：system 單獨傳；temperature 一律不送（1.2 超出 0–1，現行模型收非預設值回 400），
+    # max_tokens 有下限（思考也算進去）；思考：舊款用 budget 且裝得下預算，4.6+／5.x 用 adaptive
     assert chat("anthropic", "https://api.anthropic.com", "sk-an", "claude-x", "S", ["U"],
                 temperature=1.2, max_tokens=400) == "嗯"
     assert seen["anthropic.call"]["system"] == "S" and "thinking" not in seen["anthropic.call"]
     assert seen["anthropic.call"]["messages"] == [{"role": "user", "content": "U"}]
-    assert seen["anthropic.call"]["temperature"] == 1.2
+    assert "temperature" not in seen["anthropic.call"]
+    assert seen["anthropic.call"]["max_tokens"] >= _ANTHROPIC_MIN_MAX_TOKENS
     chat("anthropic", "", "k", "claude-x", "S", ["U"], temperature=1.2, max_tokens=400, thinking=True)
     assert seen["anthropic.call"]["thinking"] == {"type": "enabled", "budget_tokens": _THINK_BUDGET}
-    assert seen["anthropic.call"]["temperature"] == 1.0
+    assert "temperature" not in seen["anthropic.call"]
     assert seen["anthropic.call"]["max_tokens"] > _THINK_BUDGET
+    chat("anthropic", "", "k", "claude-opus-5-5", "S", ["U"], temperature=1.2, max_tokens=400, thinking=True)
+    assert seen["anthropic.call"]["thinking"] == {"type": "adaptive"}
+    assert "temperature" not in seen["anthropic.call"]
 
     # Gemini：助手那一輪叫 model；關思考 = thinking_budget 0，開 = 不傳讓模型自己定
     assert chat("gemini", "", "k", "gemini-2", "S", ["U1", "A1", "U2"], max_tokens=400) == "嗯"
